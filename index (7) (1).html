@@ -1,0 +1,2259 @@
+<!DOCTYPE html>
+<!--
+  LITTLE EXPLORERS  -  a Montessori-inspired learning app for children aged 4 to 5
+  ONE FILE: index.html.  Just open it in Google Chrome. No internet, no installing, no accounts.
+
+  HOW THIS FILE IS ORGANISED (use Ctrl+F in VS Code to jump to a heading)
+    1. <style> blocks ..... all the colours, sizes and animations
+    2. <header>/<main> .... the page skeleton (top bar, menu, empty area that screens are drawn into)
+    3. CORE script ........ saving progress, stars, badges, audio, screens (Home, Learn, Play, Progress, Parents)
+    4. LESSON KIT ......... shared helpers that every activity uses (questions, feedback, finish screen)
+    5. ACTIVITY scripts ... ALPHABET, NUMBER, COLORS & SHAPES, ANIMAL KINGDOM, GAME ENGINES, GAMES, PRACTICAL LIFE
+
+  PRIVACY: nothing is sent anywhere. Progress is saved only in this browser (localStorage).
+  There are no ads, no tracking, no external links and no sign-up.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Little Explorers: a safe, ad-free Montessori-inspired learning app for children aged 4 to 5.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%AD%90%3C/text%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fff8ec">
+<title>Little Explorers – Montessori Learning for Ages 4–5</title>
+<style>
+/* =========================================================
+   LITTLE EXPLORERS — STYLES
+   1. Design tokens   2. Base   3. Layout & nav
+   4. Components      5. Screens   6. Animations
+   ========================================================= */
+
+/* ---------- 1. DESIGN TOKENS ---------- */
+:root{
+  --cream:#fff8ec;
+  --blue:#cfe8ff;   --blue-d:#5aaaf0;
+  --yellow:#fff2b3; --yellow-d:#f2c230;
+  --peach:#ffdcc2;  --peach-d:#f59a5b;
+  --lav:#e3d9ff;    --lav-d:#9a82e6;
+  --mint:#cdf3df;   --mint-d:#47c28a;
+  --pink:#ffd6e6;   --pink-d:#ee7fa9;
+  --ink:#3b2f4a;    --ink-soft:#6f6380;
+  --card:#ffffff;
+  --radius:28px;    --radius-s:18px;
+  --shadow:0 10px 30px rgba(120,90,160,.14);
+  --shadow-s:0 4px 14px rgba(120,90,160,.12);
+  --font:"Nunito","Baloo 2","Trebuchet MS","Segoe UI",ui-rounded,system-ui,sans-serif;
+}
+
+/* ---------- 2. BASE ---------- */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font);color:var(--ink);background:var(--cream);
+  min-height:100vh;line-height:1.45;font-size:18px;
+  -webkit-tap-highlight-color:transparent;overflow-x:hidden;
+}
+body::before{ /* soft pastel blobs */
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(420px 320px at 8% 12%,var(--blue) 0%,transparent 70%),
+    radial-gradient(380px 300px at 92% 8%,var(--pink) 0%,transparent 70%),
+    radial-gradient(460px 340px at 85% 90%,var(--mint) 0%,transparent 70%),
+    radial-gradient(400px 300px at 6% 88%,var(--lav) 0%,transparent 70%);
+  opacity:.75;
+}
+h1,h2,h3{line-height:1.15;font-weight:900}
+button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer}
+:focus-visible{outline:4px solid var(--lav-d);outline-offset:3px;border-radius:14px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* ---------- 3. LAYOUT & NAV ---------- */
+.topbar{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;
+  padding:10px clamp(12px,3vw,32px);
+  background:rgba(255,248,236,.88);backdrop-filter:blur(10px);
+  border-bottom:3px dashed rgba(154,130,230,.25);
+}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:clamp(20px,3.4vw,28px);letter-spacing:-.5px}
+.logo-badge{width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,var(--yellow),var(--peach));
+  display:grid;place-items:center;box-shadow:var(--shadow-s);transform:rotate(-6deg)}
+.logo b{color:var(--peach-d)} .logo i{font-style:normal;color:var(--lav-d)}
+.spacer{flex:1}
+.nav{display:flex;gap:6px}
+.nav button{padding:10px 16px;border-radius:999px;font-weight:800;font-size:16px;color:var(--ink-soft);transition:.2s}
+.nav button:hover{background:var(--lav)}
+.nav button[aria-current="page"]{background:var(--lav-d);color:#fff;box-shadow:var(--shadow-s)}
+.nav .ico{display:none;font-size:22px;line-height:1}
+.hud{display:flex;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:var(--yellow);
+  font-weight:900;box-shadow:var(--shadow-s)}
+.pill.bump{animation:bump .5s}
+.icon-btn{width:44px;height:44px;border-radius:50%;background:var(--blue);display:grid;place-items:center;font-size:20px;box-shadow:var(--shadow-s)}
+main{max-width:1180px;margin:0 auto;padding:22px clamp(14px,3vw,32px) 120px}
+.view{animation:viewIn .45s ease both}
+footer{text-align:center;color:var(--ink-soft);font-size:14px;padding:0 16px 100px}
+
+/* ---------- 4. COMPONENTS ---------- */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:16px 28px;border-radius:999px;font-weight:900;font-size:20px;
+  background:var(--peach-d);color:#fff;box-shadow:0 6px 0 #d97b3b,var(--shadow-s);
+  transition:transform .12s, box-shadow .12s;min-height:56px;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #d97b3b}
+.btn.blue{background:var(--blue-d);box-shadow:0 6px 0 #3a88cf,var(--shadow-s)}
+.btn.mint{background:var(--mint-d);box-shadow:0 6px 0 #2fa06b,var(--shadow-s)}
+.btn.lav{background:var(--lav-d);box-shadow:0 6px 0 #7a63c8,var(--shadow-s)}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 4px 0 #e4dcf3,var(--shadow-s)}
+.btn.big{font-size:24px;padding:20px 36px;min-height:68px}
+.btn.small{font-size:16px;padding:10px 18px;min-height:44px;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.bar{height:16px;background:rgba(59,47,74,.08);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:99px;background:var(--c,var(--mint-d));transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.tag{display:inline-block;padding:4px 12px;border-radius:99px;font-size:14px;font-weight:800;background:rgba(255,255,255,.75)}
+.bubble{position:relative;background:#fff;border-radius:22px;padding:14px 18px;box-shadow:var(--shadow-s);font-weight:800;max-width:340px}
+.bubble::after{content:"";position:absolute;bottom:-12px;left:36px;border:12px solid transparent;border-top-color:#fff;border-bottom:0}
+.ring{--p:0;--c:var(--mint-d);width:130px;height:130px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(var(--c) calc(var(--p)*1%),rgba(59,47,74,.08) 0)}
+.ring>div{width:98px;height:98px;border-radius:50%;background:#fff;display:grid;place-items:center;text-align:center;font-weight:900;font-size:28px;line-height:1}
+.ring small{display:block;font-size:12px;color:var(--ink-soft);font-weight:800}
+.badge{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:14px 8px;border-radius:var(--radius-s);background:var(--cream);font-weight:800;font-size:14px}
+.badge .b-ico{font-size:34px}
+.badge.locked{filter:grayscale(1);opacity:.45}
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,30px);opacity:0;z-index:100;background:var(--ink);color:#fff;
+  padding:14px 22px;border-radius:99px;font-weight:800;transition:.35s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.confetti{position:fixed;z-index:120;pointer-events:none;font-size:22px;animation:fly .9s ease-out forwards}
+
+/* ---------- 5. SCREENS ---------- */
+/* Home hero */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:22px;align-items:stretch}
+.hero-text{background:linear-gradient(135deg,var(--yellow),var(--peach));display:flex;flex-direction:column;gap:16px;justify-content:center}
+.hero-text h1{font-size:clamp(34px,5.2vw,54px)}
+.hero-text h1 span{color:var(--lav-d)}
+.daily{background:rgba(255,255,255,.7);border-radius:var(--radius-s);padding:14px 16px;display:flex;gap:12px;align-items:center}
+.daily .sun{font-size:34px;animation:spin 14s linear infinite}
+.daily p{font-weight:800;flex:1;font-size:17px}
+.daily small{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--peach-d);font-weight:900}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.stage{background:linear-gradient(180deg,var(--blue) 0%,var(--mint) 100%);position:relative;overflow:hidden;min-height:340px;
+  display:flex;flex-direction:column;justify-content:flex-end;padding:18px}
+.stage .cloud{position:absolute;font-size:46px;opacity:.9;animation:drift 18s linear infinite}
+.stage .hill{position:absolute;left:-10%;right:-10%;bottom:-70px;height:150px;border-radius:50%;background:var(--mint-d);opacity:.55}
+.stage .bubble-wrap{position:relative;z-index:2;margin-bottom:18px;min-height:64px}
+.crew{position:relative;z-index:2;display:flex;justify-content:center;align-items:flex-end;gap:0}
+.char-btn{width:19%;min-width:60px;transition:transform .2s;animation:bob 3s ease-in-out infinite;animation-delay:var(--d,0s)}
+.char-btn:nth-child(even){margin-bottom:14px}
+.char-btn:hover{transform:scale(1.15) rotate(-4deg)}
+.char-btn:active{transform:scale(.95)}
+.char-btn .met{display:block;font-size:13px;font-weight:900;text-align:center;margin-top:-4px}
+.char svg{width:100%;height:auto;display:block;overflow:visible}
+.eyes ellipse.blinky{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}
+
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:34px 4px 14px}
+.section-title h2{font-size:clamp(24px,3.4vw,32px)}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.cat{position:relative;text-align:left;border-radius:var(--radius);padding:18px;background:var(--bg);box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:10px;transition:transform .2s, box-shadow .2s;overflow:hidden}
+.cat:hover{transform:translateY(-6px) rotate(-.6deg);box-shadow:0 16px 36px rgba(120,90,160,.22)}
+.cat:active{transform:scale(.97)}
+.cat .char{width:110px;align-self:center;animation:bob 3.4s ease-in-out infinite}
+.cat h3{font-size:24px}
+.cat p{font-size:15px;font-weight:700;color:rgba(59,47,74,.75)}
+.cat .glyph{position:absolute;top:10px;right:14px;font-size:40px;font-weight:900;opacity:.35}
+.cat .row{display:flex;justify-content:space-between;font-size:14px;font-weight:900}
+
+.dash{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}
+.progress-card{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;min-width:240px}
+.stat{background:var(--cream);border-radius:var(--radius-s);padding:12px;text-align:center}
+.stat b{display:block;font-size:30px}
+.stat span{font-size:13px;font-weight:800;color:var(--ink-soft)}
+.shelf{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:10px}
+.slot{aspect-ratio:1;border-radius:12px;background:var(--cream);display:grid;place-items:center;font-size:clamp(14px,2.4vw,26px);color:#e6dccd}
+.slot.on{background:var(--yellow);color:var(--yellow-d);animation:pop .5s both}
+.parent-cta{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,var(--lav),var(--pink));flex-wrap:wrap}
+.parent-cta div{flex:1;min-width:200px}
+
+/* Category screen */
+.crumbs{margin-bottom:14px}
+.cat-hero{display:grid;grid-template-columns:240px 1fr;gap:24px;align-items:center;background:var(--bg)}
+.cat-hero .char{width:100%;animation:bob 3s ease-in-out infinite}
+.cat-hero h1{font-size:clamp(30px,4.6vw,46px)}
+.lessons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.lesson{display:flex;flex-direction:column;gap:10px;background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-s);text-align:left;position:relative}
+.lesson .l-ico{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-size:28px;background:var(--bg)}
+.lesson h3{font-size:20px}
+.lesson.locked{opacity:.75}
+.lesson.locked .lock{position:absolute;top:14px;right:16px;font-size:20px}
+.lesson.done .l-ico{background:var(--mint)}
+.tip{background:var(--yellow);display:flex;gap:14px;align-items:flex-start}
+.tip .t-ico{font-size:34px}
+
+/* Parent */
+.gate{max-width:480px;margin:30px auto;text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center}
+.gate input,.field input{font:inherit;font-weight:800;padding:14px 18px;border-radius:16px;border:3px solid var(--lav);width:100%;max-width:300px;text-align:center;background:#fff;color:var(--ink)}
+.field{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field input{text-align:left}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.prow{display:flex;align-items:center;gap:12px}
+.prow .char{width:44px;flex:none}
+.prow .bar{flex:1}
+.prow b{min-width:90px;font-size:15px}
+.prow span{font-weight:900;font-size:14px;min-width:42px;text-align:right}
+.switch{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:800;padding:10px 0;border-bottom:2px dashed #eee6f7}
+.toggle{width:68px;height:44px;border-radius:99px;background:#d9d1e6;position:relative;transition:.2s;flex:none}
+.toggle::after{content:"";position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:#fff;transition:.2s;box-shadow:var(--shadow-s)}
+.toggle[aria-checked="true"]{background:var(--mint-d)}
+.toggle[aria-checked="true"]::after{left:32px}
+.badges{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
+ul.nice{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.nice li{padding-left:34px;position:relative;font-weight:700;font-size:16px}
+ul.nice li::before{content:"🌱";position:absolute;left:0}
+
+/* Responsive */
+@media (max-width:900px){
+  .hero,.dash,.cat-hero{grid-template-columns:1fr}
+  .cat-hero .char{max-width:190px;margin:0 auto}
+  .cat-hero{text-align:center}
+}
+@media (max-width:700px){
+  body{font-size:17px}
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:60;justify-content:space-around;gap:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.96);border-top:3px dashed rgba(154,130,230,.3);box-shadow:0 -6px 20px rgba(120,90,160,.12)}
+  .nav button{display:flex;flex-direction:column;align-items:center;gap:0;font-size:12px;padding:6px 14px;border-radius:18px}
+  .nav .ico{display:block}
+  .logo span.t{display:none}
+  .logo span.t.keep{display:inline}
+  .shelf{grid-template-columns:repeat(10,1fr)}
+  .toast{bottom:110px}
+}
+
+/* ---------- 6. ANIMATIONS ---------- */
+@keyframes viewIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes drift{from{transform:translateX(-80px)}to{transform:translateX(120vw)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pop{0%{transform:scale(.2)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes bump{0%,100%{transform:scale(1)}40%{transform:scale(1.25) rotate(-4deg)}}
+@keyframes fly{0%{opacity:1;transform:translate(0,0) scale(.6)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.3) rotate(240deg)}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="floaties" id="floaties" aria-hidden="true"></div>
+<noscript><p style="padding:24px;font:700 20px sans-serif">Little Explorers needs JavaScript. Please turn it on in your browser settings.</p></noscript>
+
+<header class="topbar">
+  <a class="logo" href="#/home" aria-label="Little Explorers home" style="text-decoration:none;color:inherit">
+    <span class="logo-badge" aria-hidden="true">
+      <svg width="30" height="30" viewBox="0 0 30 30"><path d="M15 2l3.6 8.2 8.9.8-6.7 5.9 2 8.7L15 21l-7.8 4.6 2-8.7L2.5 11l8.9-.8z" fill="#f59a5b"/><circle cx="11" cy="14" r="1.6" fill="#3b2f4a"/><circle cx="19" cy="14" r="1.6" fill="#3b2f4a"/><path d="M12 17.5q3 2.6 6 0" stroke="#3b2f4a" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+    </span>
+    <span class="t keep">Little <b>Explor</b><i>ers</i></span>
+  </a>
+  <div class="spacer"></div>
+  <div class="hud">
+    <span class="pill" id="hudStars" aria-live="polite">⭐ 0</span>
+    <button class="icon-btn" data-action="toggle-music" id="hudMusic" aria-label="Turn background music on" aria-pressed="false" title="Background music">🎵</button>
+    <button class="icon-btn" data-action="toggle-sound" id="hudSound" aria-label="Mute sound" aria-pressed="false" title="Sound on / off">🔊</button>
+  </div>
+  <nav class="nav" id="nav" aria-label="Main">
+    <button data-action="go" data-to="home" data-nav="home"><span class="ico">🏠</span>Home</button>
+    <button data-action="go" data-to="learn" data-nav="learn"><span class="ico">📚</span>Learn</button>
+    <button data-action="go" data-to="play" data-nav="play"><span class="ico">🎮</span>Play</button>
+    <button data-action="go" data-to="progress" data-nav="progress"><span class="ico">⭐</span>Progress</button>
+    <button data-action="go" data-to="parent" data-nav="parent"><span class="ico">👪</span>Parents</button>
+  </nav>
+</header>
+
+<main id="app" tabindex="-1"></main>
+<footer>Little Explorers · Montessori-inspired learning for ages 4–5 · Progress is saved on this device</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* =========================================================
+   LITTLE EXPLORERS — APPLICATION
+   Sections:
+   A. Config (categories, characters, messages)
+   B. Store (localStorage)
+   C. Helpers (sound, speech, confetti, toast)
+   D. Components (reusable HTML builders)
+   E. Views (home, learn, category, stars, parent)
+   F. Router & events
+   G. Public API for future learning modules
+   ========================================================= */
+(function(){
+"use strict";
+
+/* ---------- A. CONFIG ---------- */
+const CATEGORIES = [
+  { id:"alphabet", title:"Alphabet World", teacher:"leo", glyph:"Aa", bg:"var(--peach)", dark:"var(--peach-d)",
+    blurb:"Letters A–Z, sounds & words",
+    tip:"Montessori children meet letters by their SOUNDS first, and trace them with their fingers.",
+    lessons:[ {id:"abc-cards",title:"Alphabet Cards",icon:"🔤"}, {id:"case-match",title:"Big & Little Letters",icon:"🔠"},
+              {id:"trace",title:"Trace the Letters",icon:"✍️"}, {id:"letter-pic",title:"Letter & Picture Match",icon:"🍎"},
+              {id:"letter-sounds",title:"Listen & Find",icon:"👂"}, {id:"build-word",title:"Build a Word",icon:"🧱"} ] },
+  { id:"numbers", title:"Number World", teacher:"ellie", glyph:"123", bg:"var(--lav)", dark:"var(--lav-d)",
+    blurb:"Numbers 1–20, counting & adding",
+    tip:"Little hands learn best with real things to count: beads, blocks, buttons and pebbles.",
+    lessons:[ {id:"number-cards",title:"Number Cards 1–20",icon:"🔢"}, {id:"count-objects",title:"Count the Objects",icon:"🍓"},
+              {id:"match-quantity",title:"Match the Quantity",icon:"⚖️"}, {id:"add-it-up",title:"Add It Up",icon:"➕"},
+              {id:"pop-balloons",title:"Balloon Pop Counting",icon:"🎈"}, {id:"missing-number",title:"Missing Number",icon:"🚂"} ] },
+  { id:"colors", title:"Colors & Shapes", teacher:"bella", glyph:"◐▲", bg:"var(--pink)", dark:"var(--pink-d)",
+    blurb:"Rainbow colors & funny shapes",
+    tip:"Sorting and matching colors and shapes trains the eyes to notice tiny differences.",
+    lessons:[ {id:"meet-colors",title:"Meet the Colors",icon:"🎨"}, {id:"meet-shapes",title:"Meet the Shapes",icon:"🔷"},
+              {id:"color-match",title:"Color Match",icon:"🖍️"}, {id:"shape-sort",title:"Shape Sorting",icon:"🗂️"},
+              {id:"patterns",title:"Complete the Pattern",icon:"🌈"} ] },
+  { id:"animals", title:"Animal Kingdom", teacher:"milo", glyph:"🐾", bg:"var(--blue)", dark:"var(--blue-d)",
+    blurb:"Animal names, sounds, babies & homes",
+    tip:"Children care for nature when they learn to name and observe the living things around them.",
+    lessons:[ {id:"meet-animals",title:"Meet the Animals",icon:"🐮"}, {id:"animal-guess",title:"Guess the Animal",icon:"🦁"}, {id:"animal-sounds",title:"Who Says That?",icon:"🔊"},
+              {id:"animal-groups",title:"Animal Groups",icon:"🌍"}, {id:"animal-babies",title:"Animal Babies",icon:"🐣"},
+              {id:"animal-homes",title:"Animal Homes",icon:"🏡"} ] },
+  { id:"puzzles", title:"Puzzle & Memory Zone", teacher:"coco", glyph:"🧩", bg:"var(--mint)", dark:"var(--mint-d)",
+    blurb:"Think, remember, match & solve",
+    tip:"Puzzles build patience, concentration and problem solving. Mistakes are part of learning!",
+    lessons:[ {id:"memory-cards",title:"Memory Cards",icon:"🃏"}, {id:"picture-match",title:"Picture Matching",icon:"🔗"},
+              {id:"shape-puzzle",title:"Shape Puzzles",icon:"🧩"}, {id:"find-missing",title:"Find the Missing Object",icon:"🔍"},
+              {id:"sequencing",title:"Picture Sequencing",icon:"🔢"}, {id:"sorting-game",title:"Sorting Game",icon:"🗂️"} ] },
+  { id:"practical", title:"Practical Life", teacher:"foxy", glyph:"🫧", bg:"var(--yellow)", dark:"var(--yellow-d)",
+    blurb:"Helping, caring & growing up",
+    tip:"Pouring, buttoning and tidying build independence, coordination and confidence.",
+    lessons:[ {id:"wash-hands",title:"Washing Hands",icon:"🧼"}, {id:"brush-teeth",title:"Brushing Teeth",icon:"🪥"},
+              {id:"arrange-toys",title:"Arranging Toys",icon:"🧸"}, {id:"sort-clothes",title:"Sorting Clothes",icon:"👕"},
+              {id:"breakfast",title:"Make Breakfast",icon:"🥣"}, {id:"set-table",title:"Set the Table",icon:"🍽️"},
+              {id:"table-manners",title:"Table Manners",icon:"🙏"} ] }
+];
+
+/* Characters: SVG art is generated in code so everything stays in one file. */
+const INK="#3b2f4a";
+const eyes=(y,dx)=>`<g class="eyes"><ellipse class="blinky" cx="${100-dx}" cy="${y}" rx="6" ry="7.5" fill="${INK}"/><ellipse class="blinky" cx="${100+dx}" cy="${y}" rx="6" ry="7.5" fill="${INK}"/><circle cx="${100-dx+2}" cy="${y-3}" r="2" fill="#fff"/><circle cx="${100+dx+2}" cy="${y-3}" r="2" fill="#fff"/></g>`;
+const cheeks=(y,dx)=>`<ellipse cx="${100-dx}" cy="${y}" rx="9" ry="6" fill="#ff9db8" opacity=".6"/><ellipse cx="${100+dx}" cy="${y}" rx="9" ry="6" fill="#ff9db8" opacity=".6"/>`;
+const smile=(y)=>`<path d="M91 ${y} Q100 ${y+11} 109 ${y}" stroke="${INK}" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+
+const CHARACTERS = {
+  leo:{ name:"Leo the Lion", short:"Leo", role:"Alphabet Teacher", cat:"alphabet",
+    greet:["Roar-some to see you! Let's find letters!","A is for Apple! Can you say it?","Letters make words, and words make stories!"],
+    svg:()=>{let m="";for(let i=0;i<12;i++){const a=i*Math.PI/6;m+=`<circle cx="${100+Math.cos(a)*62}" cy="${108+Math.sin(a)*62}" r="26" fill="#f59a5b"/>`}
+      return `<svg viewBox="0 0 200 200" role="img" aria-label="Leo the Lion"><ellipse cx="100" cy="196" rx="52" ry="30" fill="#ffd27a"/>${m}<circle cx="100" cy="108" r="64" fill="#f59a5b"/>
+      <circle cx="56" cy="58" r="20" fill="#ffd27a"/><circle cx="144" cy="58" r="20" fill="#ffd27a"/><circle cx="56" cy="58" r="10" fill="#ffb7c8"/><circle cx="144" cy="58" r="10" fill="#ffb7c8"/>
+      <circle cx="100" cy="108" r="52" fill="#ffd98a"/><ellipse cx="100" cy="130" rx="28" ry="20" fill="#fff3d6"/>
+      ${eyes(100,22)}${cheeks(122,38)}<path d="M92 118 h16 l-8 9z" fill="#d9718c"/><path d="M100 127 v6" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>${smile(133)}</svg>`}},
+  ellie:{ name:"Ellie the Elephant", short:"Ellie", role:"Numbers Teacher", cat:"numbers",
+    greet:["Trumpet time! Let's count together!","1, 2, 3… I never forget a number!","How many toes can you count?"],
+    svg:()=>`<svg viewBox="0 0 200 200" role="img" aria-label="Ellie the Elephant"><ellipse cx="100" cy="196" rx="54" ry="30" fill="#c3b4f0"/>
+      <circle cx="40" cy="98" r="38" fill="#b3a1ec"/><circle cx="160" cy="98" r="38" fill="#b3a1ec"/><circle cx="40" cy="98" r="24" fill="#f0c9ff" opacity=".75"/><circle cx="160" cy="98" r="24" fill="#f0c9ff" opacity=".75"/>
+      <circle cx="100" cy="100" r="58" fill="#d3c7f7"/>
+      <path d="M100 118 Q98 168 122 164 Q132 162 130 150" stroke="#d3c7f7" stroke-width="28" fill="none" stroke-linecap="round"/>
+      <path d="M92 150 h16 M93 140 h14" stroke="#b3a1ec" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+      ${eyes(88,24)}${cheeks(112,40)}<path d="M104 70 Q110 62 118 68" stroke="#b3a1ec" stroke-width="3" fill="none" stroke-linecap="round" opacity="0"/></svg>`},
+  bella:{ name:"Bella the Bunny", short:"Bella", role:"Colors & Shapes Teacher", cat:"colors",
+    greet:["Hop hop hooray! Let's find colors!","Red, blue, yellow… which is your favorite?","Circles, squares, triangles – shapes are everywhere!"],
+    svg:()=>`<svg viewBox="0 0 200 200" role="img" aria-label="Bella the Bunny"><ellipse cx="100" cy="196" rx="50" ry="30" fill="#fff"/>
+      <ellipse cx="68" cy="44" rx="17" ry="44" fill="#fff" stroke="#f1dfec" stroke-width="3"/><ellipse cx="132" cy="44" rx="17" ry="44" fill="#fff" stroke="#f1dfec" stroke-width="3" transform="rotate(8 132 44)"/>
+      <ellipse cx="68" cy="48" rx="8" ry="30" fill="#ffc1d8"/><ellipse cx="132" cy="48" rx="8" ry="30" fill="#ffc1d8" transform="rotate(8 132 48)"/>
+      <circle cx="100" cy="112" r="56" fill="#fff" stroke="#f1dfec" stroke-width="3"/>
+      ${eyes(104,22)}${cheeks(126,38)}<ellipse cx="100" cy="120" rx="7" ry="5" fill="#ff8fb0"/><path d="M100 125 v5" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>${smile(130)}
+      <rect x="94" y="138" width="12" height="12" rx="3" fill="#fff" stroke="#e8d5e2" stroke-width="2"/></svg>`},
+  coco:{ name:"Coco the Bear", short:"Coco", role:"Puzzle Teacher", cat:"puzzles",
+    greet:["Bear hugs! Ready for a puzzle?","Every piece has a home. Let's find it!","Take your time. Puzzles love patience."],
+    svg:()=>`<svg viewBox="0 0 200 200" role="img" aria-label="Coco the Bear"><ellipse cx="100" cy="196" rx="52" ry="30" fill="#d9a077"/>
+      <circle cx="50" cy="60" r="24" fill="#c98f6b"/><circle cx="150" cy="60" r="24" fill="#c98f6b"/><circle cx="50" cy="60" r="12" fill="#f3c9a8"/><circle cx="150" cy="60" r="12" fill="#f3c9a8"/>
+      <circle cx="100" cy="108" r="60" fill="#d9a077"/><ellipse cx="100" cy="128" rx="28" ry="21" fill="#f6dcc2"/>
+      ${eyes(98,24)}${cheeks(120,42)}<ellipse cx="100" cy="118" rx="9" ry="6.5" fill="${INK}"/><path d="M100 124 v6" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>${smile(130)}
+      <path d="M150 150 h22 v-10 a6 6 0 1 1 12 0 v10 h6 v22 h-40z" fill="#9ad9b9" transform="translate(-30 22) scale(.7)" opacity="0"/></svg>`},
+  foxy:{ name:"Foxy the Fox", short:"Foxy", role:"Practical Life Teacher", cat:"practical",
+    greet:["Yip yip! Let's help out today!","I can pour, scoop and tidy. Can you?","Little helpers do big things!"],
+    svg:()=>`<svg viewBox="0 0 200 200" role="img" aria-label="Foxy the Fox"><ellipse cx="100" cy="196" rx="52" ry="30" fill="#f7a05f"/>
+      <path d="M44 92 L52 22 L98 64z" fill="#f47f3e"/><path d="M156 92 L148 22 L102 64z" fill="#f47f3e"/><path d="M56 70 L58 40 L80 62z" fill="#3b2f4a" opacity=".85"/><path d="M144 70 L142 40 L120 62z" fill="#3b2f4a" opacity=".85"/>
+      <ellipse cx="100" cy="112" rx="62" ry="52" fill="#f7a05f"/>
+      <circle cx="66" cy="132" r="26" fill="#fff"/><circle cx="134" cy="132" r="26" fill="#fff"/><ellipse cx="100" cy="142" rx="34" ry="24" fill="#fff"/>
+      ${eyes(104,26)}${cheeks(124,44)}<ellipse cx="100" cy="124" rx="8" ry="6" fill="${INK}"/><path d="M100 130 v5" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>${smile(135)}</svg>`}
+};
+CHARACTERS.milo={ name:"Milo the Monkey", short:"Milo", role:"Animal Kingdom Teacher", cat:"animals",
+  greet:["Ooh ooh! Let's meet the animals!","Moo, quack, roar! Can you do the sounds?","Every animal has a home and a family!"],
+  svg:()=>`<svg viewBox="0 0 200 200" role="img" aria-label="Milo the Monkey"><ellipse cx="100" cy="196" rx="52" ry="30" fill="#b98457"/>
+    <circle cx="38" cy="104" r="24" fill="#a36f46"/><circle cx="162" cy="104" r="24" fill="#a36f46"/><circle cx="38" cy="104" r="13" fill="#f6cfae"/><circle cx="162" cy="104" r="13" fill="#f6cfae"/>
+    <circle cx="100" cy="98" r="60" fill="#b98457"/><path d="M90 44 Q100 28 110 44" stroke="#a36f46" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <circle cx="78" cy="98" r="23" fill="#f6dcc0"/><circle cx="122" cy="98" r="23" fill="#f6dcc0"/><ellipse cx="100" cy="120" rx="40" ry="34" fill="#f6dcc0"/>
+    ${eyes(98,22)}${cheeks(122,38)}<ellipse cx="94" cy="116" rx="2.6" ry="3.4" fill="#8a5a38"/><ellipse cx="106" cy="116" rx="2.6" ry="3.4" fill="#8a5a38"/>${smile(127)}</svg>`};
+const CHAR_ORDER=["leo","ellie","bella","milo","coco","foxy"];
+const charSVG=id=>CHARACTERS[id].svg();
+
+const DAILY_MESSAGES=[
+  "Today we explore with curious eyes and kind hands!","Every little step is a big adventure.","Mistakes help our brains grow!",
+  "Take your time. Careful work feels wonderful.","Today, let's find something new to wonder about!","Helping others makes the world brighter.",
+  "Good explorers listen, look and try!","You can do hard things, one step at a time.","Let's be gentle, curious and brave today!",
+  "Learning is better when we're having fun!","Look closely. Small things are amazing!","Every day is a new chance to shine!",
+  "Practice makes progress, not perfect.","Let's work with joy and finish with a smile!"];
+
+/* ---------- B. STORE ---------- */
+const KEY="littleExplorers.v1";
+const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const defaults=()=>({ ver:3, vol:.7, name:"", stars:0, met:{}, lessons:{}, stats:{}, last:"", streak:0, lastVisit:"", dailyClaimed:"", sound:true, voice:true, created:todayStr(), extra:{} });
+let state=defaults(), storageOK=true;
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){ const d=JSON.parse(raw);
+      if(d&&typeof d==="object"){ state=Object.assign(defaults(),d);
+        ["met","lessons","stats","extra"].forEach(k=>{ if(!state[k]||typeof state[k]!=="object") state[k]={}; });
+        if(!Number.isFinite(state.stars)||state.stars<0) state.stars=0;
+        if(!Number.isFinite(state.vol)||state.vol<.1||state.vol>1) state.vol=.7; } }
+  }catch(e){}
+}
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(state)); storageOK=true;}catch(e){storageOK=false;} }
+function checkStorage(){ try{const k=KEY+".test"; localStorage.setItem(k,"1"); localStorage.removeItem(k); storageOK=true;}catch(e){storageOK=false;} }
+function updateStreak(){
+  const t=todayStr(); if(state.lastVisit===t) return;
+  const y=new Date(); y.setDate(y.getDate()-1);
+  const ys=y.getFullYear()+"-"+String(y.getMonth()+1).padStart(2,"0")+"-"+String(y.getDate()).padStart(2,"0");
+  state.streak = state.lastVisit===ys ? state.streak+1 : 1;
+  state.lastVisit=t; save();
+}
+const lessonsDoneIn=c=>c.lessons.filter(l=>state.lessons[c.id+"/"+l.id]).length;
+const catPercent=c=>Math.round(lessonsDoneIn(c)/c.lessons.length*100);
+const totalPercent=()=>{let d=0,t=0;CATEGORIES.forEach(c=>{d+=lessonsDoneIn(c);t+=c.lessons.length});return Math.round(d/t*100)};
+const metCount=()=>CHAR_ORDER.filter(id=>state.met[id]).length;
+const doneCount=()=>CATEGORIES.reduce((n,c)=>n+lessonsDoneIn(c),0);
+const totalCount=()=>CATEGORIES.reduce((n,c)=>n+c.lessons.length,0);
+const fmtDate=d=>{ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(typeof d==="string"?d:""); return m?new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString(undefined,{month:"short",day:"numeric"}):""; };
+/* Per-category numbers come only from recorded plays: nothing is estimated. */
+function catStats(c){
+  let plays=0,cc=0,tt=0,last="";
+  c.lessons.forEach(l=>{ const s=state.stats[c.id+"/"+l.id]; if(!s) return; plays+=s.plays||0; cc+=s.c||0; tt+=s.t||0; if(s.last&&s.last>last) last=s.last; });
+  return {plays:plays,acc:tt?Math.round(cc/tt*100):null,last:last};
+}
+function overallAccuracy(){ let cc=0,tt=0; CATEGORIES.forEach(c=>c.lessons.forEach(l=>{ const s=state.stats[c.id+"/"+l.id]; if(s){cc+=s.c||0;tt+=s.t||0} })); return tt?Math.round(cc/tt*100):null; }
+/* The one place that records a finished activity. A star is given only the FIRST time an activity is completed,
+   and that fact is saved, so refreshing or replaying can never earn the same star again. */
+function recordCompletion(k,score){
+  const had=!!state.lessons[k]; state.lessons[k]=true;
+  const s=state.stats[k]=state.stats[k]||{first:had?null:todayStr(),plays:0,c:0,t:0,best:null};
+  s.plays=(s.plays||0)+1; s.last=todayStr();
+  if(score&&score.t>0){ const c=Math.max(0,Math.min(score.c,score.t)); s.c=(s.c||0)+c; s.t=(s.t||0)+score.t; const pct=Math.round(c/score.t*100); s.best=s.best==null?pct:Math.max(s.best,pct); }
+  save();
+  if(!had) addStars(1,null,null,true); else checkBadges();
+  return !had;
+}
+
+/* ---------- C. HELPERS ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* ---------- AUDIO ENGINE ----------
+   All sounds are made by the browser itself (WebAudio + speech), so there are no sound files.
+   NOTHING plays until a child or parent taps something. Music is OFF every time the app opens.
+   If a browser has no audio at all, every function below quietly does nothing and the app still works. */
+let AC=null, master=null;
+function actx(){
+  const Ctor=window.AudioContext||window.webkitAudioContext; if(!Ctor) return null;
+  try{
+    if(!AC){ AC=new Ctor(); master=AC.createGain(); master.gain.value=state.vol; master.connect(AC.destination); }
+    if(AC.state==="suspended") AC.resume().catch(()=>{});
+    return AC;
+  }catch(e){ AC=null; return null; }
+}
+function setVolume(v){ state.vol=Math.max(.1,Math.min(1,v)); if(master) master.gain.value=state.vol; save(); }
+function tone(f,t0,dur,type,vol){
+  const c=actx(); if(!c) return;
+  const o=c.createOscillator(),g=c.createGain(); o.type=type||"sine"; o.frequency.value=f;
+  const t=c.currentTime+t0; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol||.12,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.05);
+}
+function sfx(kind){
+  if(!state.sound) return;
+  try{
+    if(kind==="ok") [660,880,1175].forEach((f,i)=>tone(f,i*.09,.3,"sine",.13));
+    else if(kind==="bad"){ tone(330,0,.18,"triangle",.07); tone(262,.14,.25,"triangle",.07); }   /* soft and low: never harsh */
+    else if(kind==="flip") tone(520,0,.08,"square",.03);
+    else if(kind==="pop"){ tone(700,0,.1,"sine",.1); tone(990,.07,.12,"sine",.09); }
+    else if(kind==="win") [523,659,784,1047,1319].forEach((f,i)=>tone(f,i*.11,.35,"sine",.12));
+  }catch(e){}
+}
+const chime=()=>sfx("ok");
+/* animal sounds: one list of tiny "voices" per animal (t=start, d=length, p=pitch path in Hz) */
+function voice(o){
+  const c=actx(); if(!c) return;
+  const t=c.currentTime+(o.t||0), d=o.d||.3, g=c.createGain(); let src;
+  if(o.noise){ const len=Math.ceil(c.sampleRate*d), buf=c.createBuffer(1,len,c.sampleRate), dat=buf.getChannelData(0); for(let i=0;i<len;i++) dat[i]=Math.random()*2-1; src=c.createBufferSource(); src.buffer=buf; }
+  else{
+    src=c.createOscillator(); src.type=o.type||"sine"; const p=o.p||[440]; src.frequency.setValueAtTime(p[0],t);
+    p.slice(1).forEach((f,i,arr)=>src.frequency.linearRampToValueAtTime(f,t+d*(i+1)/arr.length));
+    if(o.vib){ const l=c.createOscillator(),lg=c.createGain(); l.frequency.value=o.vib[0]; lg.gain.value=o.vib[1]; l.connect(lg); lg.connect(src.frequency); l.start(t); l.stop(t+d+.05); }
+  }
+  let node=src;
+  if(o.lp){ const f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=o.lp; node.connect(f); node=f; }
+  if(o.bp){ const f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=o.bp; f.Q.value=1.2; node.connect(f); node=f; }
+  const v=o.v||.12; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+Math.min(.06,d/3)); g.gain.setValueAtTime(v,t+d*.6); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  node.connect(g); g.connect(master); src.start(t); src.stop(t+d+.05);
+}
+const rep3=(n,gap,o)=>Array.from({length:n},(_,i)=>Object.assign({},o,{t:i*gap}));
+const ANIMAL_SOUNDS={
+  Cow:[{d:1.1,p:[150,125,105],type:"sawtooth",lp:650,vib:[5,6],v:.16}],
+  Pig:[{t:0,d:.22,p:[260,170],type:"sawtooth",lp:900,v:.15},{t:.3,d:.25,p:[240,140],type:"sawtooth",lp:900,v:.15}],
+  Sheep:[{d:.9,p:[330,300,320],type:"sawtooth",bp:900,vib:[16,25],v:.14}],
+  Horse:[{d:1,p:[500,900,650,300],type:"sawtooth",lp:1800,vib:[9,30],v:.11}],
+  Zebra:[{d:1,p:[550,950,700,350],type:"sawtooth",lp:1800,vib:[9,30],v:.11}],
+  Dog:[{t:0,d:.16,p:[220,150],type:"square",lp:800,v:.14},{t:.28,d:.18,p:[220,140],type:"square",lp:800,v:.14}],
+  Cat:[{d:.8,p:[500,850,650],type:"triangle",bp:1400,vib:[6,15],v:.18}],
+  Lion:[{d:1.3,noise:true,lp:500,v:.22},{d:1.3,p:[90,70],type:"sawtooth",lp:300,vib:[22,12],v:.15}],
+  Tiger:[{d:1,noise:true,lp:700,v:.2},{d:1,p:[110,85],type:"sawtooth",lp:400,vib:[20,10],v:.14}],
+  Elephant:[{d:1,p:[320,700,520],type:"sawtooth",lp:1500,vib:[14,25],v:.11}],
+  Monkey:[{t:0,d:.2,p:[600,420],v:.14},{t:.28,d:.2,p:[620,430],v:.14},{t:.56,d:.3,p:[640,380],v:.14}],
+  Wolf:[{d:1.6,p:[320,720,640,400],vib:[5,10],v:.13}],
+  Owl:[{t:0,d:.35,p:[420,380],v:.15},{t:.5,d:.5,p:[400,340],v:.15}],
+  Parrot:[{t:0,d:.18,p:[1100,600],type:"sawtooth",bp:1500,v:.1},{t:.25,d:.18,p:[1200,650],type:"sawtooth",bp:1500,v:.1}],
+  Duck:[{t:0,d:.16,p:[520,330],type:"square",lp:1300,v:.09},{t:.22,d:.16,p:[520,320],type:"square",lp:1300,v:.09}],
+  Chicken:rep3(4,.13,{d:.08,p:[520,700],type:"triangle",v:.12}),
+  Swan:[{d:.5,p:[420,380],type:"sawtooth",lp:1200,v:.11}],
+  Dove:rep3(3,.42,{d:.3,p:[360,320],v:.12}),
+  Whale:[{d:1.8,p:[110,260,130],vib:[3,18],v:.18}],
+  Dolphin:rep3(5,.08,{d:.05,p:[2200,1800],v:.07}).concat([{t:.5,d:.4,p:[1500,3000],v:.07}]),
+  Seal:[{t:0,d:.18,p:[260,200],type:"square",lp:700,v:.1},{t:.28,d:.18,p:[260,200],type:"square",lp:700,v:.1}],
+  Fish:rep3(3,.22,{d:.14,p:[420,220],v:.12}),
+  Crab:[{t:0,d:.05,noise:true,lp:3500,v:.12},{t:.18,d:.05,noise:true,lp:3500,v:.12}],
+  Bee:[{d:.9,p:[170,170],type:"sawtooth",lp:700,vib:[45,40],v:.09}],
+  Cricket:rep3(4,.12,{d:.07,p:[3000],v:.05}),
+  Frog:[{t:0,d:.15,p:[140,110],type:"sawtooth",lp:500,v:.16},{t:.2,d:.15,p:[140,110],type:"sawtooth",lp:500,v:.16}],
+  Bird:rep3(3,.16,{d:.12,p:[2200,3000],v:.06})
+};
+/* plays the animal's sound; returns how many seconds it lasts (0 = no sound, nothing played) */
+function animalSound(name){
+  if(!state.sound) return 0; const r=ANIMAL_SOUNDS[name]; if(!r||!actx()) return 0;
+  try{ r.forEach(voice); }catch(e){ return 0; }
+  return Math.max.apply(null,r.map(n=>(n.t||0)+(n.d||.3)));
+}
+/* gentle background music: a slow, soft tune in the C-major pentatonic scale. Starts only when asked. */
+let musicOn=false, mTimer=null, mGain=null, mNext=0, mStep=0, mIdx=3;
+const PENTA=[261.63,293.66,329.63,392,440,523.25,587.33,659.25];
+const CHORDS=[[130.81,196,261.63],[110,164.81,220],[87.31,130.81,174.61],[98,146.83,196]];
+function mnote(f,t,d,type,v){
+  const o=AC.createOscillator(),g=AC.createGain(); o.type=type; o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(v,t+.08); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g); g.connect(mGain); o.start(t); o.stop(t+d+.05);
+}
+function mTick(){
+  if(!musicOn||!AC||!mGain) return;
+  while(mNext<AC.currentTime+1.5){
+    if(mStep%8===0) CHORDS[(mStep/8)%4].forEach(f=>mnote(f,mNext,4.4,"sine",.05));
+    if(mStep%2===0||Math.random()<.3){ mIdx=Math.max(0,Math.min(PENTA.length-1,mIdx+[-2,-1,0,1,2][Math.floor(Math.random()*5)])); mnote(PENTA[mIdx],mNext,1.1,"triangle",.07); }
+    mNext+=.6; mStep++;
+  }
+}
+function musicStart(){
+  if(musicOn||!state.sound) return false; const c=actx(); if(!c) return false;
+  musicOn=true; mGain=c.createGain(); mGain.gain.setValueAtTime(.0001,c.currentTime); mGain.gain.linearRampToValueAtTime(.55,c.currentTime+2.5); mGain.connect(master);
+  mNext=c.currentTime+.15; mStep=0; mTick(); mTimer=setInterval(mTick,400); return true;
+}
+function musicStop(){
+  if(!musicOn) return; musicOn=false; clearInterval(mTimer); mTimer=null;
+  const g=mGain; mGain=null;
+  if(g&&AC){ try{ g.gain.cancelScheduledValues(AC.currentTime); g.gain.setValueAtTime(Math.max(g.gain.value,.0001),AC.currentTime); g.gain.linearRampToValueAtTime(.0001,AC.currentTime+.4); setTimeout(()=>{try{g.disconnect()}catch(e){}},700); }catch(e){} }
+}
+function setMusic(on){
+  if(on){ if(!state.sound){ toast("Turn the sound on first 🔊"); return; } if(!musicStart()) toast("Music is not available in this browser"); }
+  else musicStop();
+  updateHud();
+}
+function setSound(on){
+  state.sound=!!on; save();
+  if(!state.sound){ musicStop(); try{speechSynthesis.cancel()}catch(e){} }
+  updateHud();
+}
+function speak(text){
+  if(!state.voice||!state.sound||!("speechSynthesis" in window)) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.rate=.85; u.pitch=1.25; u.volume=state.vol; speechSynthesis.speak(u); }catch(e){}
+}
+/* pause everything when the tab is hidden, so nothing plays in the background */
+document.addEventListener("visibilitychange",()=>{
+  if(!AC) return;
+  if(document.hidden){ try{AC.suspend()}catch(e){} try{speechSynthesis.cancel()}catch(e){} }
+  else if(state.sound){ try{AC.resume()}catch(e){} }
+});
+let toastTimer;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2400)}
+function burst(x,y){
+  if(x==null){x=innerWidth/2;y=innerHeight/2}
+  const bits=["⭐","✨","🌟","💛","🎈"];
+  for(let i=0;i<12;i++){const s=document.createElement("span");s.className="confetti";s.textContent=bits[i%bits.length];
+    s.style.left=x+"px";s.style.top=y+"px";s.style.setProperty("--dx",(Math.random()*240-120)+"px");s.style.setProperty("--dy",(Math.random()*-220-20)+"px");
+    document.body.appendChild(s);setTimeout(()=>s.remove(),1000)}
+}
+/* Six achievement badges (one per subject) + milestone badges. Subject badges unlock after BADGE_NEED finished activities. */
+/* ---------- DECORATION & CELEBRATION ---------- */
+const calm=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+function shower(){
+  if(calm()) return;
+  const box=document.createElement("div"); box.className="shower"; box.setAttribute("aria-hidden","true"); const bits=["⭐","✨","🌟","🎈","💛","🟣","🔵","🟢"];
+  for(let i=0;i<34;i++){ const e=document.createElement("span"); e.textContent=bits[i%bits.length]; e.style.left=(Math.random()*100)+"%"; e.style.animationDuration=(1.8+Math.random()*1.6)+"s"; e.style.animationDelay=(Math.random()*.8)+"s"; e.style.fontSize=(16+Math.random()*18)+"px"; box.appendChild(e); }
+  document.body.appendChild(box); setTimeout(()=>box.remove(),4200);
+}
+function makeFloaties(){
+  const box=$("#floaties"); if(!box||box.children.length) return;
+  const kinds=["circle","ring","tri","star","sq","cloud"], cols=["#cfe8ff","#ffe58f","#ffdcc2","#e3d9ff","#cdf3df","#ffd6e6"];
+  for(let i=0;i<14;i++){
+    const e=document.createElement("span"), k=kinds[i%kinds.length], c=cols[i%cols.length], size=26+Math.random()*44;
+    e.className="fl "+k; e.style.left=(Math.random()*96)+"%"; e.style.top=(Math.random()*90)+"%";
+    e.style.animationDuration=(9+Math.random()*9)+"s,"+(14+Math.random()*10)+"s"; e.style.animationDelay=(-Math.random()*12)+"s,"+(-Math.random()*12)+"s";
+    if(k==="cloud"){ e.textContent="☁️"; e.style.fontSize=size+"px"; }
+    else if(k==="ring"){ e.style.width=e.style.height=size+"px"; e.style.border="6px solid "+c; }
+    else{ e.style.width=e.style.height=size+"px"; e.style.background=c; }
+    box.appendChild(e);
+  }
+}
+document.addEventListener("pointerdown",e=>{   /* soft ripple on buttons */
+  const el=e.target.closest&&e.target.closest(".btn,.le-opt,.cat,.game,.chip,.icon-btn,.nav button,.an-tabs button");
+  if(!el||el.disabled||calm()) return;
+  const r=el.getBoundingClientRect(), d=Math.max(r.width,r.height), sp=document.createElement("span");
+  sp.className="ripple"; sp.style.width=sp.style.height=d+"px"; sp.style.left=(e.clientX-r.left-d/2)+"px"; sp.style.top=(e.clientY-r.top-d/2)+"px";
+  el.appendChild(sp); setTimeout(()=>sp.remove(),650);
+});
+
+const BADGE_NEED=3;
+const seenBadges=()=>(state.extra.badges=state.extra.badges||{});
+const CAT_BADGES=[["alphabet","🔤","Alphabet Star"],["numbers","🔢","Number Champion"],["colors","🎨","Color Explorer"],["animals","🦁","Animal Expert"],["puzzles","🧩","Puzzle Master"],["practical","🧺","Little Helper"]].map(x=>{
+  const cat=CATEGORIES.find(c=>c.id===x[0]);
+  return {id:"cat-"+x[0],group:"achievement",ico:x[1],name:x[2],need:BADGE_NEED,have:()=>lessonsDoneIn(cat),ok:()=>lessonsDoneIn(cat)>=BADGE_NEED,how:"Finish "+BADGE_NEED+" "+cat.title+" activities"};
+});
+const MILESTONES=[
+  {id:"first", group:"milestone",ico:"⭐",name:"First Star",      how:"Earn your first star",            need:1, have:()=>state.stars, ok:()=>state.stars>=1},
+  {id:"ten",   group:"milestone",ico:"🌟",name:"Star Collector",  how:"Collect 10 stars",                need:10,have:()=>state.stars, ok:()=>state.stars>=10},
+  {id:"fifty", group:"milestone",ico:"🏆",name:"Super Star",      how:"Collect 50 stars",                need:50,have:()=>state.stars, ok:()=>state.stars>=50},
+  {id:"friends",group:"milestone",ico:"🤝",name:"Friend of All",  how:"Say hello to every animal friend",need:CHAR_ORDER.length,have:()=>metCount(), ok:()=>metCount()===CHAR_ORDER.length},
+  {id:"streak",group:"milestone",ico:"🔥",name:"3-Day Explorer",  how:"Visit 3 days in a row",           need:3, have:()=>state.streak, ok:()=>state.streak>=3},
+  {id:"lesson",group:"milestone",ico:"🎓",name:"First Lesson",    how:"Finish your first activity",      need:1, have:()=>doneCount(), ok:()=>doneCount()>=1}
+];
+const BADGES=CAT_BADGES.concat(MILESTONES);
+const isUnlocked=b=>!!seenBadges()[b.id]||b.ok();
+const unlockedCount=()=>BADGES.filter(isUnlocked).length;
+let badgeQueue=[],badgeBusy=false;
+function checkBadges(){
+  const seen=seenBadges(); let added=false;
+  BADGES.forEach(b=>{ if(b.ok()&&!seen[b.id]){ seen[b.id]=todayStr(); badgeQueue.push(b); added=true; } });
+  if(added) save();
+  runBadgeQueue();
+}
+function runBadgeQueue(){
+  if(badgeBusy||!badgeQueue.length) return; badgeBusy=true; const b=badgeQueue.shift();
+  setTimeout(()=>{ showBadge(b); setTimeout(()=>{ badgeBusy=false; runBadgeQueue(); },3800); },1800);
+}
+function showBadge(b){
+  const el=document.createElement("div"); el.className="badge-pop"; el.setAttribute("role","status");
+  el.innerHTML=`<span class="bp-ico" aria-hidden="true">${b.ico}</span><span><small>New badge unlocked!</small><br><b>${esc(b.name)}</b></span>`;
+  document.body.appendChild(el); chime(); burst(); speak("New badge! "+b.name); setTimeout(()=>el.remove(),3700);
+}
+function addStars(n,x,y,silent){
+  state.stars+=n; save(); updateHud(); chime();
+  const p=$("#hudStars"); p.classList.remove("bump"); void p.offsetWidth; p.classList.add("bump");
+  burst(x,y); if(!silent) toast("+"+n+" star"+(n>1?"s":"")+"! ⭐"); checkBadges(); save();
+}
+function updateHud(){
+  $("#hudStars").textContent="⭐ "+state.stars;
+  const snd=$("#hudSound"), mus=$("#hudMusic");
+  snd.textContent=state.sound?"🔊":"🔇"; snd.setAttribute("aria-pressed",String(!state.sound)); snd.setAttribute("aria-label",state.sound?"Mute sound":"Unmute sound"); snd.classList.toggle("off",!state.sound);
+  mus.setAttribute("aria-pressed",String(musicOn)); mus.setAttribute("aria-label",musicOn?"Turn background music off":"Turn background music on"); mus.classList.toggle("on",musicOn); mus.classList.toggle("off",!state.sound);
+}
+
+/* ---------- D. COMPONENTS ---------- */
+const Progress=(pct,color)=>`<div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%;--c:${color||"var(--mint-d)"}"></i></div>`;
+const Ring=(pct,label)=>`<div class="ring" style="--p:${pct}" role="img" aria-label="${pct}% complete"><div><span>${pct}%<small>${label||"done"}</small></span></div></div>`;
+const CategoryCard=c=>{const p=catPercent(c);return `
+  <button class="cat" style="--bg:${c.bg}" data-action="go" data-to="learn/${c.id}" aria-label="${esc(c.title)} with ${esc(CHARACTERS[c.teacher].short)}">
+    <span class="glyph" aria-hidden="true">${c.glyph}</span>
+    <div class="char">${charSVG(c.teacher)}</div>
+    <h3>${esc(c.title)}</h3><p>${esc(c.blurb)}</p>
+    <div class="row"><span>${lessonsDoneIn(c)}/${c.lessons.length} lessons</span><span>${p}%</span></div>
+    ${Progress(p,c.dark)}
+  </button>`};
+const Badge=b=>{
+  const on=isUnlocked(b), dl=fmtDate(seenBadges()[b.id]), have=Math.min(b.have?b.have():0,b.need||0);
+  return `<div class="badge ${on?"on":"locked"}"><span class="b-ico" aria-hidden="true">${b.ico}</span><b>${esc(b.name)}</b>
+    <small>${on?"Unlocked"+(dl?" · "+dl:""):esc(b.how)}</small>
+    ${!on&&b.need>1?`${Progress(Math.round(have/b.need*100),"var(--lav-d)")}<span class="b-prog">${have} / ${b.need}</span>`:""}</div>`;
+};
+const StarShelf=()=>{let h="";for(let i=0;i<20;i++)h+=`<div class="slot ${i<state.stars?"on":""}" style="animation-delay:${i*40}ms">★</div>`;
+  return `<div class="shelf" aria-hidden="true">${h}</div>${state.stars>20?`<p style="margin-top:8px;font-weight:800;color:var(--ink-soft)">…and ${state.stars-20} more! Wow!</p>`:""}`};
+const BackBtn=(to,label)=>`<button class="btn ghost small crumbs" data-action="go" data-to="${to}">← ${label}</button>`;
+
+/* ---------- E. VIEWS ---------- */
+function continueTarget(){
+  if(state.last && state.last!=="home") return state.last;
+  const c=CATEGORIES.find(c=>catPercent(c)<100)||CATEGORIES[0];
+  return "learn/"+c.id;
+}
+function continueLabel(){
+  const parts=continueTarget().split("/"); const c=CATEGORIES.find(x=>x.id===parts[1]);
+  return c?"with "+CHARACTERS[c.teacher].short:"";
+}
+function viewHome(){
+  const msg=DAILY_MESSAGES[Math.floor(Date.now()/864e5)%DAILY_MESSAGES.length];
+  const claimed=state.dailyClaimed===todayStr();
+  const greet=state.name?`Hello, <span>${esc(state.name)}</span>!`:`Hello, <span>Little Explorer!</span>`;
+  return `
+  <section class="hero">
+    <div class="card hero-text">
+      <h1>${greet}</h1>
+      <div class="daily">
+        <span class="sun" aria-hidden="true">☀️</span>
+        <p><small>Today's learning message</small>${esc(msg)}</p>
+      </div>
+      <div class="hero-cta">
+        <button class="btn big" data-action="continue">▶ Continue Learning <span style="font-size:15px;opacity:.9">${continueLabel()}</span></button>
+        <button class="btn lav" data-action="go" data-to="play">🎮 Play Games</button>
+        <button class="btn mint" data-action="daily" ${claimed?"disabled style='opacity:.6;cursor:default'":""}>${claimed?"⭐ Daily star collected":"🎁 Get daily star"}</button>
+      </div>
+    </div>
+    <div class="card stage" aria-label="Your animal teachers">
+      <span class="cloud" style="top:14px;left:0">☁️</span><span class="cloud" style="top:70px;left:0;animation-delay:-8s;font-size:34px">☁️</span>
+      <div class="hill"></div>
+      <div class="bubble-wrap"><div class="bubble" id="bubble">Tap a friend to say hello! 👋</div></div>
+      <div class="crew">
+        ${CHAR_ORDER.map((id,i)=>`<button class="char-btn char" style="--d:${i*.4}s" data-action="meet" data-id="${id}" aria-label="Say hello to ${esc(CHARACTERS[id].name)}">${charSVG(id)}<span class="met">${state.met[id]?"⭐":"&nbsp;"}</span></button>`).join("")}
+      </div>
+    </div>
+  </section>
+
+  <div class="section-title"><h2>What shall we learn?</h2></div>
+  <section class="cats">${CATEGORIES.map(CategoryCard).join("")}</section>
+
+  <div class="section-title"><h2>My Progress</h2><button class="btn small blue" data-action="go" data-to="progress">See everything ▶</button></div>
+  <section class="dash">
+    <div class="card progress-card">
+      ${Ring(totalPercent(),"explored")}
+      <div class="stats">
+        <div class="stat"><b>${state.stars}</b><span>⭐ Stars</span></div>
+        <div class="stat"><b>${doneCount()}/${totalCount()}</b><span>✅ Activities</span></div>
+        <div class="stat"><b>${unlockedCount()}/${BADGES.length}</b><span>🏅 Badges</span></div>
+        <div class="stat"><b>${state.streak||1}</b><span>🔥 Day streak</span></div>
+      </div>
+    </div>
+    <div class="card"><h3>⭐ Stars Collected · ${state.stars}</h3>${StarShelf()}</div>
+  </section>
+
+  <section class="card parent-cta" style="margin-top:18px">
+    <span style="font-size:48px" aria-hidden="true">👪</span>
+    <div><h3>Parent Dashboard</h3><p style="font-weight:700">See progress, update settings and read Montessori tips.</p></div>
+    <button class="btn lav" data-action="go" data-to="parent">Open</button>
+  </section>`;
+}
+
+function viewLearn(){
+  return `<div class="section-title" style="margin-top:6px"><h1 style="font-size:clamp(30px,4.6vw,44px)">Choose a Teacher</h1></div>
+  <p style="font-weight:700;margin:0 4px 18px;color:var(--ink-soft)">Every teacher has special activities. Tap one to begin!</p>
+  <section class="cats">${CATEGORIES.map(CategoryCard).join("")}</section>`;
+}
+
+function viewCategory(id){
+  const c=CATEGORIES.find(x=>x.id===id); if(!c) return viewLearn();
+  const ch=CHARACTERS[c.teacher];
+  state.last="learn/"+c.id; save();
+  const cards=c.lessons.map(l=>{
+    const mod=Modules[c.id+"/"+l.id], done=state.lessons[c.id+"/"+l.id];
+    return mod
+      ? `<button class="lesson ${done?"done":""}" style="--bg:${c.bg}" data-action="go" data-to="learn/${c.id}/${l.id}">
+           <span class="l-ico">${l.icon}</span><h3>${esc(l.title)}</h3>
+           <span class="tag" style="background:${done?"var(--mint)":"var(--yellow)"}">${done?"✓ Done":"▶ Play"}</span></button>`
+      : `<div class="lesson locked" style="--bg:${c.bg}"><span class="lock" aria-hidden="true">🔒</span>
+           <span class="l-ico">${l.icon}</span><h3>${esc(l.title)}</h3><span class="tag" style="background:var(--cream)">Coming soon</span></div>`;
+  }).join("");
+  return `
+  ${BackBtn("learn","All teachers")}
+  <section class="card cat-hero" style="--bg:${c.bg}">
+    <div class="char">${charSVG(c.teacher)}</div>
+    <div class="stack">
+      <span class="tag" style="align-self:flex-start;background:#fff">${esc(ch.role)}</span>
+      <h1>${esc(c.title)}</h1>
+      <div class="bubble" id="bubble" style="align-self:inherit">${esc(ch.greet[0])}</div>
+      <div class="hero-cta" style="margin-top:6px">
+        <button class="btn" data-action="meet" data-id="${c.teacher}">👋 Say hello to ${esc(ch.short)}</button>
+      </div>
+      <div style="max-width:420px">${Progress(catPercent(c),c.dark)}<small style="font-weight:800">${lessonsDoneIn(c)} of ${c.lessons.length} lessons finished</small></div>
+    </div>
+  </section>
+  <div class="section-title"><h2>${esc(c.title)} Activities</h2></div>
+  <section class="lessons">${cards}</section>
+  <section class="card tip" style="margin-top:22px"><span class="t-ico" aria-hidden="true">💡</span><div><h3>Montessori idea</h3><p style="font-weight:700">${esc(c.tip)}</p></div></section>`;
+}
+
+function viewLesson(catId,lessonId){
+  const mod=Modules[catId+"/"+lessonId], c=CATEGORIES.find(x=>x.id===catId);
+  if(!mod||!c){ location.hash="#/learn/"+catId; return ""; }
+  state.last="learn/"+catId; save();
+  return `${fromPlay?BackBtn("play","Game Zone"):BackBtn("learn/"+catId,"Back to "+esc(c.title))}<section class="card" id="lessonHost"></section>`;
+}
+function mountLesson(catId,lessonId){
+  const host=$("#lessonHost"); if(!host) return;
+  const mod=Modules[catId+"/"+lessonId];
+  mod.render(host,{
+    complete(stars,score){ return recordCompletion(catId+"/"+lessonId,score); },  /* one star for each newly completed activity */
+    addStars:(n)=>addStars(n), speak, state:()=>state, saveData(k,v){state.extra[k]=v;save()}, getData:k=>state.extra[k]
+  });
+}
+
+/* ---------- GAME ZONE ---------- */
+const GAMES=[
+  {k:"alphabet/letter-pic",   t:"Alphabet Match",   d:"Pick the letter for the picture", e:"🍎", c:"var(--peach)"},
+  {k:"numbers/count-objects", t:"Count & Choose",   d:"Count the objects",               e:"🍓", c:"var(--lav)"},
+  {k:"colors/color-match",    t:"Color Match",      d:"What color is it?",               e:"🖍️", c:"var(--pink)"},
+  {k:"colors/shape-sort",     t:"Shape Sorting",    d:"Drag shapes to their holes",      e:"🔷", c:"var(--pink)"},
+  {k:"animals/animal-guess",  t:"Guess the Animal", d:"Who is hiding here?",             e:"🦁", c:"var(--blue)"},
+  {k:"puzzles/memory-cards",  t:"Memory Match",     d:"Flip cards and find pairs",       e:"🃏", c:"var(--mint)"},
+  {k:"practical/wash-hands",  t:"What Comes Next?", d:"Put the steps in order",          e:"🧼", c:"var(--yellow)"}
+];
+let chain=null, fromPlay=false;
+function curKey(){ const p=(location.hash||"").replace(/^#\/?/,"").split("/"); return p[0]==="learn"&&p[2]?p[1]+"/"+p[2]:null; }
+function chainInfo(){ const k=curKey(); if(!chain||!k) return null; const i=chain.indexOf(k); return i<0?null:{i:i,n:chain.length}; }
+function nextKey(){
+  const k=curKey(); if(!k) return null;
+  const ci=chainInfo(); if(ci) return ci.i+1<ci.n?chain[ci.i+1]:null;
+  const parts=k.split("/"), cat=CATEGORIES.find(x=>x.id===parts[0]); if(!cat) return null;
+  const idx=cat.lessons.findIndex(x=>x.id===parts[1]);
+  for(let j=idx+1;j<cat.lessons.length;j++){ if(Modules[cat.id+"/"+cat.lessons[j].id]) return cat.id+"/"+cat.lessons[j].id; }
+  return null;
+}
+function backTarget(){ const k=curKey(); return (fromPlay||chainInfo())?"play":(k?"learn/"+k.split("/")[0]:"learn"); }
+function viewPlay(){
+  const done=GAMES.filter(g=>state.lessons[g.k]).length;
+  const cards=GAMES.map((g,i)=>{ const ok=!!state.lessons[g.k], has=!!Modules[g.k]; return `
+    <button class="game" style="--bg:${g.c}" data-action="play-game" data-k="${g.k}" ${has?"":"disabled"} aria-label="${esc(g.t)}">
+      <span class="g-num">${i+1}</span><span class="g-ico" aria-hidden="true">${g.e}</span>
+      <h3>${esc(g.t)}</h3><p>${esc(g.d)}</p>
+      <span class="tag" style="background:${ok?"var(--mint)":"#fff"}">${ok?"⭐ Star collected":"▶ Play"}</span>
+    </button>`}).join("");
+  return `<section class="card play-hero">
+      <div class="char" style="width:120px;flex:none;animation:bob 3s ease-in-out infinite">${charSVG("milo")}</div>
+      <div style="flex:1;min-width:220px"><h1 style="font-size:clamp(30px,5vw,46px)">Game Zone 🎮</h1>
+        <p style="font-weight:800;margin:6px 0 12px">Play one game, or press Start Adventure to play all ${GAMES.length} in a row!</p>
+        ${Progress(Math.round(done/GAMES.length*100),"var(--mint-d)")}<small style="font-weight:800">${done} of ${GAMES.length} games finished</small></div>
+      <button class="btn big" data-action="adventure">🚀 Start Adventure</button>
+    </section>
+    <div class="section-title"><h2>Pick a game</h2></div>
+    <section class="games">${cards}</section>`;
+}
+
+/* ---------- MY PROGRESS ---------- */
+const Tile=(ico,val,label)=>`<div class="tile"><span class="t-ico" aria-hidden="true">${ico}</span><b>${val}</b><span>${label}</span></div>`;
+function viewProgress(){
+  const done=doneCount(), total=totalCount(), pct=totalPercent(), un=unlockedCount(), bonus=Math.max(0,state.stars-done);
+  const msg=done===0?"Finish an activity to earn your first star!":done===total?"You finished every activity. Superstar!":"Great work, explorer! Keep going!";
+  const bars=CATEGORIES.map(c=>{const p=catPercent(c);return `
+    <button class="prog-row" data-action="go" data-to="learn/${c.id}" aria-label="${esc(c.title)}: ${lessonsDoneIn(c)} of ${c.lessons.length} activities finished">
+      <span class="char">${charSVG(c.teacher)}</span>
+      <span class="pr-main"><b>${esc(c.title)}</b><span class="pr-sub">${lessonsDoneIn(c)} of ${c.lessons.length} activities finished</span>${Progress(p,c.dark)}</span>
+      <span class="pr-pct">${p}%</span></button>`}).join("");
+  const fin=CATEGORIES.map(c=>{
+    const ls=c.lessons.filter(l=>state.lessons[c.id+"/"+l.id]);
+    return `<div class="fin"><h3><span class="dot" style="background:${c.dark}"></span>${esc(c.title)} <small>${ls.length} of ${c.lessons.length}</small></h3>
+      ${ls.length?`<div class="chips">${ls.map(l=>{const st=state.stats[c.id+"/"+l.id];return `<button class="chip" data-action="go" data-to="learn/${c.id}/${l.id}" title="Play again"><span aria-hidden="true">${l.icon}</span>${esc(l.title)}${st&&st.first?`<small>${fmtDate(st.first)}</small>`:""}</button>`}).join("")}</div>`
+        :`<p class="empty">Nothing finished here yet.</p>`}</div>`}).join("");
+  return `<div class="section-title" style="margin-top:6px"><h1 style="font-size:clamp(30px,4.6vw,44px)">My Progress 🌈</h1></div>
+  <section class="card star-hero">
+    <div class="big-star" aria-hidden="true">🌟</div>
+    <div class="sh-text"><h2>${state.stars} star${state.stars===1?"":"s"}</h2><p>${msg}</p>
+      <p class="sh-sub">${done} from activities${bonus?` · ${bonus} bonus (friends and daily gifts)`:""}</p>
+      ${done===0?`<button class="btn" data-action="go" data-to="learn" style="margin-top:10px">Start learning</button>`:""}</div>
+    ${Ring(pct,"explored")}
+  </section>
+  <section class="tiles">
+    ${Tile("✅",`${done}<small> / ${total}</small>`,"Activities completed")}
+    ${Tile("⭐",state.stars,"Stars collected")}
+    ${Tile("🏅",`${un}<small> / ${BADGES.length}</small>`,"Badges unlocked")}
+    ${Tile("🔥",state.streak||1,"Day streak")}
+  </section>
+  <div class="section-title"><h2>Progress by subject</h2></div>
+  <section class="prog-list">${bars}</section>
+  <div class="section-title"><h2>My badges</h2></div>
+  <section class="card"><h3 class="sub-h">Subject badges</h3><div class="badges">${BADGES.filter(b=>b.group==="achievement").map(Badge).join("")}</div>
+    <h3 class="sub-h">Milestones</h3><div class="badges">${BADGES.filter(b=>b.group==="milestone").map(Badge).join("")}</div></section>
+  <div class="section-title"><h2>Activities I finished</h2></div>
+  <section class="fin-grid">${fin}</section>
+  <div class="section-title"><h2>Star shelf</h2></div>
+  <section class="card">${StarShelf()}</section>
+  <div class="section-title"><h2>My animal friends</h2></div>
+  <section class="card"><div class="crew" style="gap:6px">${CHAR_ORDER.map(id=>`<div class="char-btn char" style="${state.met[id]?"":"filter:grayscale(1);opacity:.45"};animation:none">${charSVG(id)}<span class="met" style="font-size:14px">${esc(CHARACTERS[id].short)}</span></div>`).join("")}</div></section>`;
+}
+
+/* ---------- RESET CONFIRMATION (in-app dialog) ---------- */
+function closeModal(){ const m=$("#modal"); if(m) m.remove(); }
+function confirmDialog(o){
+  closeModal();
+  const m=document.createElement("div"); m.className="modal"; m.id="modal"; m.setAttribute("role","alertdialog"); m.setAttribute("aria-modal","true"); m.setAttribute("aria-labelledby","mTitle");
+  m.innerHTML=`<div class="modal-card"><div class="m-ico" aria-hidden="true">⚠️</div><h2 id="mTitle">${esc(o.title)}</h2><p>${o.body}</p>
+    <div class="m-btns"><button class="btn ghost" data-m="no">Cancel</button><button class="btn danger" data-m="yes">${esc(o.yes)}</button></div></div>`;
+  m.addEventListener("click",e=>{ const t=e.target.closest("[data-m]"); if(t){ const yes=t.dataset.m==="yes"; closeModal(); if(yes) o.onYes(); } else if(e.target===m) closeModal(); });
+  document.body.appendChild(m); m.querySelector('[data-m="no"]').focus();
+}
+function askReset(){
+  confirmDialog({title:"Reset all progress?",
+    body:`This will erase <b>${state.stars} star${state.stars===1?"":"s"}</b>, <b>${doneCount()} completed activit${doneCount()===1?"y":"ies"}</b> and <b>${unlockedCount()} badge${unlockedCount()===1?"":"s"}</b>. It cannot be undone.<br><small>Your child's name and sound settings are kept. Tip: download a backup first.</small>`,
+    yes:"Yes, reset progress", onYes:doReset});
+}
+function doReset(){
+  const keep={name:state.name,sound:state.sound,voice:state.voice,vol:state.vol,created:state.created};
+  state=Object.assign(defaults(),keep); badgeQueue=[]; badgeBusy=false;
+  updateStreak(); save(); updateHud(); toast("Progress was reset"); route();
+}
+
+let gate=null, gateOK=false;
+function newGate(){gate={a:Math.floor(Math.random()*6)+4,b:Math.floor(Math.random()*6)+4}}
+function viewParent(){
+  if(!gateOK){
+    if(!gate) newGate();
+    return `<section class="card gate">
+      <div style="font-size:56px" aria-hidden="true">🔐</div>
+      <h2>Grown-ups only</h2>
+      <p style="font-weight:700">To open the Parent Dashboard, please solve:</p>
+      <h1 style="font-size:44px">${gate.a} + ${gate.b} = ?</h1>
+      <input id="gateInput" inputmode="numeric" autocomplete="off" aria-label="Answer" placeholder="Answer">
+      <button class="btn lav" data-action="gate">Open Dashboard</button>
+    </section>`;
+  }
+  const done=doneCount(), total=totalCount(), pct=totalPercent(), acc=overallAccuracy(), bonus=Math.max(0,state.stars-done);
+  const perf=CATEGORIES.map(c=>{const p=catPercent(c),cs=catStats(c);return `
+    <div class="perf">
+      <div class="perf-h"><div class="char">${charSVG(c.teacher)}</div><div style="flex:1"><b>${esc(c.title)}</b><br><small>${lessonsDoneIn(c)} of ${c.lessons.length} activities completed</small></div><span class="pct">${p}%</span></div>
+      ${Progress(p,c.dark)}
+      <div class="perf-m"><span>🎯 Right first time <b>${cs.acc==null?"–":cs.acc+"%"}</b></span><span>🔁 Times played <b>${cs.plays}</b></span><span>📅 Last played <b>${cs.last?fmtDate(cs.last):"–"}</b></span></div>
+    </div>`}).join("");
+  const acts=CATEGORIES.map(c=>`<div class="card act-card"><h3><span class="dot" style="background:${c.dark}"></span>${esc(c.title)} <small>${lessonsDoneIn(c)} of ${c.lessons.length}</small></h3>
+    <ul class="alist">${c.lessons.map(l=>{
+      const k=c.id+"/"+l.id,dn=!!state.lessons[k],st=state.stats[k];
+      const det=dn?(st?`${st.first?"Finished "+fmtDate(st.first)+" · ":""}played ${st.plays||1}×${st.t?` · best ${st.best}%`:""}`:"Finished earlier"):"Not played yet";
+      return `<li class="${dn?"done":""}"><span class="ai" aria-hidden="true">${l.icon}</span><span class="an"><b>${esc(l.title)}</b><small>${det}</small></span><span class="as">${dn?"✓ Done":"Not yet"}</span></li>`}).join("")}</ul></div>`).join("");
+  return `
+  <div class="section-title" style="margin-top:6px"><h1 style="font-size:clamp(30px,4.6vw,44px)">Parent Dashboard 👪</h1>
+    <button class="btn ghost small" data-action="lock">🔒 Lock</button></div>
+  <p class="p-note">Everything below comes from what your child has really completed on this device.</p>
+  <section class="tiles">
+    ${Tile("⭐",state.stars,"Total stars")}
+    ${Tile("✅",`${done}<small> / ${total}</small>`,"Activities completed")}
+    ${Tile("🏅",`${unlockedCount()}<small> / ${BADGES.length}</small>`,"Badges unlocked")}
+    ${Tile("🎯",acc==null?"–":acc+"%","Right first time")}
+    ${Tile("🔥",state.streak||1,"Day streak")}
+  </section>
+  <section class="grid2" style="margin-top:18px">
+    <div class="card stack">
+      <h3>Learning progress</h3>
+      <div class="prow" style="gap:18px">${Ring(pct,"complete")}<p style="font-weight:700;flex:1">${done===0?"No activities completed yet.":done+" of "+total+" activities completed."}${state.stars?`<br><small style="color:var(--ink-soft)">${state.stars} stars: ${done} from activities${bonus?`, ${bonus} bonus`:""}.</small>`:""}</p></div>
+      <h3 style="margin-top:6px">Child's profile</h3>
+      <div class="field"><input id="nameInput" maxlength="20" placeholder="Nickname (optional)" value="${esc(state.name)}" aria-label="Child's nickname, optional">
+        <button class="btn mint small" data-action="save-name">Save</button></div>
+      <p class="p-small">Optional. A nickname is enough. It is only kept on this device.</p>
+      <p class="p-small">Member since ${esc(fmtDate(state.created)||state.created)} · Last visit ${esc(fmtDate(state.lastVisit)||"today")}</p>
+    </div>
+    <div class="card stack">
+      <h3>Category performance</h3>${perf}
+      <p class="p-small">“Right first time” is the share of answers that were correct on the first try. In Memory Cards it is matches per try.</p>
+    </div>
+  </section>
+  <div class="section-title"><h2>Completed activities</h2></div>
+  <section class="fin-grid">${acts}</section>
+  <div class="section-title"><h2>Achievement badges</h2></div>
+  <section class="card"><h3 class="sub-h">Subject badges</h3><div class="badges">${BADGES.filter(b=>b.group==="achievement").map(Badge).join("")}</div>
+    <h3 class="sub-h">Milestones</h3><div class="badges">${BADGES.filter(b=>b.group==="milestone").map(Badge).join("")}</div></section>
+  <section class="grid2" style="margin-top:18px">
+    <div class="card stack">
+      <h3>Sound settings</h3>
+      <div class="switch"><span>🔊 Sounds & chimes</span><button class="toggle" role="switch" aria-checked="${state.sound}" aria-label="Sounds" data-action="set-sound"></button></div>
+      <div class="switch"><span>🗣️ Voices (reads aloud, says letters)</span><button class="toggle" role="switch" aria-checked="${state.voice}" aria-label="Voices" data-action="set-voice"></button></div>
+      <div class="switch"><span>🎵 Background music <small class="p-small">(starts off every time)</small></span><button class="toggle" role="switch" aria-checked="${musicOn}" aria-label="Background music" data-action="set-music"></button></div>
+      <div class="vol"><label for="volInput">🔈 Volume <b id="volOut">${Math.round(state.vol*100)}%</b></label><input id="volInput" type="range" min="10" max="100" step="10" value="${Math.round(state.vol*100)}"></div>
+      <button class="btn ghost small" data-action="test-sound">▶ Test the sound</button>
+    </div>
+    <div class="card stack">
+      <h3>Saved data</h3>
+      <p class="${storageOK?"store-ok":"store-bad"}">${storageOK?"✅ Progress is saved on this device and stays after you close the browser.":"⚠️ This browser is blocking storage (private mode?). Progress will be lost when the page closes."}</p>
+      <div class="hero-cta">
+        <button class="btn ghost small" data-action="export">⬇ Download backup</button>
+        <button class="btn danger small" data-action="reset">🗑 Reset progress</button>
+      </div>
+      <p class="p-small">Resetting asks you to confirm first. The child's name and sound settings are kept.</p>
+    </div>
+    <div class="card stack">
+      <h3>Safe &amp; private 🛡️</h3>
+      <ul class="nice">
+        <li>No ads, no accounts, no sign-up.</li>
+        <li>No personal information is collected. Nothing is sent over the internet.</li>
+        <li>No links that lead out of the app.</li>
+        <li>Progress stays on this device only.</li>
+      </ul>
+    </div>
+  </section>
+  <div class="section-title"><h2>Teaching team</h2></div>
+  <section class="card"><div class="stack">${CHAR_ORDER.map(id=>`<div class="prow"><div class="char">${charSVG(id)}</div><div style="flex:1"><b style="min-width:0">${esc(CHARACTERS[id].name)}</b><br><small style="font-weight:700;color:var(--ink-soft)">${esc(CHARACTERS[id].role)}</small></div><span style="min-width:0">${state.met[id]?"⭐ Met":"—"}</span></div>`).join("")}</div></section>
+  <div class="section-title"><h2>Montessori tips for parents</h2></div>
+  <section class="card"><ul class="nice">
+    <li><b>Follow the child.</b> Let them choose the activity and stay with it as long as they like.</li>
+    <li><b>Use real objects.</b> Count real buttons, pour real water, sort real leaves.</li>
+    <li><b>Let mistakes happen.</b> Offer a gentle hint instead of fixing it for them.</li>
+    <li><b>Short, joyful sessions.</b> 10–20 focused minutes is perfect at ages 4–5.</li>
+    <li><b>Celebrate effort.</b> Praise concentration and persistence, not just right answers.</li>
+  </ul></section>`;
+}
+
+/* ---------- F. ROUTER & EVENTS ---------- */
+const Modules={};
+function route(){
+  try{speechSynthesis.cancel()}catch(e){}
+  const raw=(location.hash||"#/home").replace(/^#\/?/,"")||"home";
+  const [page,a,b]=raw.split("/");
+  const app=$("#app"); let html="",navKey=page;
+  if(!(page==="learn"&&b)&&page!=="play"){ chain=null; fromPlay=false; }
+  if(page==="learn"&&b) html=viewLesson(a,b);
+  else if(page==="learn"&&a) html=viewCategory(a);
+  else if(page==="learn") html=viewLearn();
+  else if(page==="play") html=viewPlay();
+  else if(page==="stars"||page==="progress"){ html=viewProgress(); navKey="progress"; }
+  else if(page==="parent") html=viewParent();
+  else { html=viewHome(); navKey="home"; }
+  app.innerHTML=`<div class="view">${html}</div>`;
+  $$("#nav button").forEach(btn=>btn.setAttribute("aria-current",btn.dataset.nav===navKey?"page":"false"));
+  if(page==="learn"&&b) mountLesson(a,b);
+  scrollTo({top:0});
+}
+function go(to){ const h="#/"+to; if(location.hash===h) route(); else location.hash=h; }
+function say(id){
+  const ch=CHARACTERS[id]; const line=ch.greet[Math.floor(Math.random()*ch.greet.length)];
+  const b=$("#bubble"); if(b) b.textContent=ch.short+": "+line; sfx("pop"); speak(line);
+  const btn=$(`.char-btn[data-id="${id}"]`); if(btn){ btn.classList.remove("talk"); void btn.offsetWidth; btn.classList.add("talk"); setTimeout(()=>btn.classList.remove("talk"),1100); }
+}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-action]"); if(!t||t.disabled) return;
+  const act=t.dataset.action, r=t.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/3;
+  switch(act){
+    case "go": go(t.dataset.to); break;
+    case "continue": go(continueTarget()); break;
+    case "meet": { const id=t.dataset.id; say(id);
+      if(!state.met[id]){ state.met[id]=true; save(); addStars(1,cx,cy);
+        const m=t.querySelector(".met"); if(m) m.textContent="⭐"; } else { burst(cx,cy); }
+      break; }
+    case "adventure": chain=GAMES.map(g=>g.k); fromPlay=true; go("learn/"+chain[0]); break;
+    case "play-game": chain=null; fromPlay=true; go("learn/"+t.dataset.k); break;
+    case "daily": state.dailyClaimed=todayStr(); save(); addStars(1,cx,cy); route(); break;
+    case "toggle-sound": case "set-sound": setSound(!state.sound); if(act==="set-sound") route(); break;
+    case "toggle-music": case "set-music": setMusic(!musicOn); if(act==="set-music") route(); break;
+    case "test-sound": sfx("win"); break;
+    case "set-voice": state.voice=!state.voice; save(); route(); break;
+    case "gate": { const v=parseInt($("#gateInput").value,10);
+      if(v===gate.a+gate.b){gateOK=true;route();} else {toast("Not quite. Try again!");newGate();route();} break; }
+    case "lock": gateOK=false; newGate(); go("home"); break;
+    case "save-name": state.name=$("#nameInput").value.trim().slice(0,20); save(); toast(state.name?"Saved! Hello, "+state.name+"!":"Name cleared"); break;
+    case "export": { const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="little-explorers-progress.json"; a.click(); break; }
+    case "reset": askReset(); break;
+  }
+});
+document.addEventListener("input",e=>{ if(e.target.id==="volInput"){ setVolume(+e.target.value/100); const o=$("#volOut"); if(o) o.textContent=Math.round(state.vol*100)+"%"; } });
+document.addEventListener("change",e=>{ if(e.target.id==="volInput") sfx("pop"); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeModal(); if(e.key==="Enter"&&e.target.id==="gateInput") $('[data-action="gate"]').click(); if(e.key==="Enter"&&e.target.id==="nameInput") $('[data-action="save-name"]').click(); });
+window.addEventListener("hashchange",route);
+
+/* ---------- G. PUBLIC API FOR FUTURE LEARNING MODULES ----------
+   Add a module later with:
+   LittleExplorers.registerModule("alphabet","letter-sounds",{
+     render(container, api){ container.innerHTML="..."; api.complete(3); }
+   });
+   The lesson id must match one in CATEGORIES above. It unlocks automatically. */
+window.LittleExplorers={
+  registerModule(catId,lessonId,mod){ Modules[catId+"/"+lessonId]=mod; if(document.readyState!=="loading") route(); },
+  categories:CATEGORIES, characters:CHARACTERS, addStars:n=>addStars(n), getState:()=>state, esc, speak, toast, burst, chime, CHAR_ORDER, refresh:()=>route(),
+  go, nextKey, chainInfo, backTarget, shower,
+  audio:{sfx:sfx,animal:animalSound,isMusicOn:()=>musicOn,setMusic:setMusic}
+};
+
+/* ---------- START ---------- */
+/* keep several open tabs in step, and save once more when the page is closed */
+window.addEventListener("storage",e=>{ if(e.key===KEY){ load(); updateHud(); } });
+window.addEventListener("pagehide",save);
+document.addEventListener("DOMContentLoaded",()=>{
+  load(); checkStorage(); updateStreak(); updateHud(); makeFloaties(); route(); checkBadges(); save();
+  if(!storageOK) setTimeout(()=>toast("This browser can't save progress (private mode?)"),600);
+});
+})();
+</script>
+<style>
+/* ===== STEP 2: SHARED LESSON UI ===== */
+.char-btn{width:16%}
+.le-lesson{display:flex;flex-direction:column;gap:16px}
+.le-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.le-head h2{font-size:clamp(24px,4vw,34px);flex:1;min-width:180px}
+.le-instr{background:var(--yellow);border-radius:var(--radius-s);padding:12px 16px;font-weight:800;display:flex;gap:10px;align-items:center}
+.le-dots{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.le-dots i{width:16px;height:16px;border-radius:50%;background:rgba(59,47,74,.12);transition:.3s}
+.le-dots i.on{background:var(--mint-d)} .le-dots i.cur{background:var(--yellow-d);transform:scale(1.3)}
+.le-prompt{background:var(--cream);border-radius:var(--radius);padding:20px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;min-height:150px}
+.le-big{font-size:clamp(64px,16vw,120px);line-height:1;font-weight:900}
+.le-ask{font-size:clamp(20px,3.4vw,26px);font-weight:900}
+.le-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px}
+.le-opt{background:#fff;border:4px solid var(--lav);border-radius:var(--radius);padding:12px 10px;font-size:clamp(34px,8vw,54px);font-weight:900;min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:var(--shadow-s);transition:transform .15s,border-color .15s,background .15s;line-height:1.1}
+.le-opt small{font-size:16px;font-weight:800;color:var(--ink-soft)}
+.le-opt.txt{font-size:clamp(20px,4.4vw,28px)}
+.le-opt:hover:not(:disabled){transform:translateY(-4px);border-color:var(--lav-d)}
+.le-opt.ok{background:var(--mint);border-color:var(--mint-d);animation:pop .4s}
+.le-opt.bad{background:var(--pink);border-color:var(--pink-d);animation:shake .4s;opacity:.7}
+.le-opt:disabled{cursor:default}
+.le-fb{min-height:34px;text-align:center;font-weight:900;font-size:20px}
+.le-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.le-done{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;padding:10px}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+</style>
+<style>
+/* ===== STEP 3: GAME SYSTEM ===== */
+.nav button{white-space:nowrap}
+@media (max-width:700px){
+  .nav button{padding:6px 8px;font-size:11px}
+  /* backdrop-filter on the header would trap the fixed bottom tab bar inside it */
+  .topbar{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--cream)}
+}
+.le-chain{background:var(--lav);border-radius:var(--radius-s);padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.le-fb{transition:color .2s} .le-fb.good{color:#2a9d6b} .le-fb.bad{color:#d9822b}
+.le-fb.pop{animation:fbpop .45s both}
+@keyframes fbpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+/* completion screen */
+.dn-stage{position:relative;width:min(240px,60vw);padding-bottom:40px}
+.dn-char{width:100%;animation:bob 1.6s ease-in-out infinite}
+.dn-star{position:absolute;right:-18px;top:-8px;font-size:64px;animation:starIn .9s cubic-bezier(.2,1.4,.4,1) both,spin 6s linear 1s infinite}
+@keyframes starIn{0%{transform:scale(0) rotate(-120deg)}100%{transform:scale(1) rotate(0)}}
+.dn-title{font-size:clamp(34px,7vw,54px);color:var(--peach-d);animation:fbpop .6s both}
+.dn-sub{font-weight:900;font-size:22px;color:var(--mint-d)}
+/* Game zone */
+.play-hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg,var(--blue),var(--lav))}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.game{position:relative;text-align:left;background:var(--bg);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;transition:transform .2s;min-height:200px}
+.game:hover:not(:disabled){transform:translateY(-6px) rotate(-.8deg)}
+.game:active:not(:disabled){transform:scale(.97)}
+.game:disabled{opacity:.55;cursor:default}
+.g-num{position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:900}
+.g-ico{font-size:58px;line-height:1;animation:bob 3s ease-in-out infinite}
+.game h3{font-size:22px} .game p{font-weight:700;font-size:15px;flex:1}
+.game .tag{align-self:flex-start}
+</style>
+<script>
+/* =========================================================
+   STEP 2 — SHARED LESSON KIT (window.LEKit)
+   rounds(): a series of rounds with progress dots + finish screen
+   quiz():   rounds with multiple-choice answers
+   shell():  lesson title, instructions, listen button
+   ========================================================= */
+(function(){
+"use strict";
+const LE=window.LittleExplorers, esc=LE.esc;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a};
+const sample=(a,n)=>shuffle(a).slice(0,n);
+const rnd=n=>Math.floor(Math.random()*n);
+const range=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r};
+const canSpeak=()=>{const st=LE.getState();return ("speechSynthesis" in window)&&st.sound&&st.voice};
+function hear(text){
+  const st=LE.getState();
+  if(!("speechSynthesis" in window)){LE.toast("This browser cannot talk, but you can read the words!");return}
+  if(!st.sound||!st.voice){LE.toast("Voices are off. A grown-up can turn them on in the Parent page.");return}
+  LE.speak(text);
+}
+function back(){LE.go(LE.backTarget())}
+/* ---- feedback, sounds, celebration ---- */
+const CHEERS=["Wonderful!","Great Job!","Amazing!","You're Learning!"]; let cheerI=Math.floor(Math.random()*4);
+const cheer=()=>CHEERS[cheerI++%CHEERS.length];
+const TRY_AGAIN="Let's Try Again!";
+const sfx=kind=>LE.audio.sfx(kind);   /* the real sounds live in the core AUDIO ENGINE */
+function celebrate(el){
+  if(!el||!el.getBoundingClientRect) return LE.burst();
+  const r=el.getBoundingClientRect(); LE.burst(r.left+r.width/2,r.top+r.height/2);
+}
+function chainBar(){
+  const ci=LE.chainInfo(); if(!ci) return "";
+  return `<div class="le-chain" role="progressbar" aria-valuenow="${ci.i+1}" aria-valuemin="1" aria-valuemax="${ci.n}"><b>🚀 Adventure · Game ${ci.i+1} of ${ci.n}</b><div class="bar"><i style="width:${Math.round((ci.i)/ci.n*100)}%;--c:var(--lav-d)"></i></div></div>`;
+}
+function shell(host,o){
+  host.innerHTML=`<div class="le-lesson">${chainBar()}<div class="le-head"><h2>${o.icon} ${esc(o.title)}</h2><button class="btn small blue" data-h="1">🔊 Listen</button></div>
+  <div class="le-instr"><span aria-hidden="true">👉</span><span>${esc(o.instr)}</span></div><div class="le-dots"></div><div class="le-body"></div></div>`;
+  host.querySelector("[data-h]").onclick=()=>hear(o.instr);
+  return {body:host.querySelector(".le-body"),dots:host.querySelector(".le-dots")};
+}
+function dots(el,total,cur){el.innerHTML=Array.from({length:total},(_,i)=>`<i class="${i<cur?"on":i===cur?"cur":""}"></i>`).join("")}
+function mc(correct,pool,n,fmt){
+  const wrong=sample(pool.filter(x=>x!==correct),n-1);
+  return shuffle([correct].concat(wrong)).map(x=>({html:fmt(x),ok:x===correct,label:typeof x==="string"?x:""}));
+}
+function doneScreen(body,api,o){
+  const first=api.complete(1,o.score);
+  const nk=LE.nextKey(), ci=LE.chainInfo(), parts=(location.hash||"").replace(/^#\/?/,"").split("/");
+  const cat=LE.categories.find(c=>c.id===parts[1]), ch=cat&&LE.characters[cat.teacher];
+  const lastOfChain=ci&&ci.i===ci.n-1;
+  const next=nk?`<button class="btn big" data-a="next">${ci?"Next game":"Next activity"} ➡</button>`:(lastOfChain?`<button class="btn big" data-a="finish">🏆 Finish Adventure</button>`:"");
+  body.innerHTML=`<div class="le-done"><div class="dn-stage">${ch?`<div class="dn-char char">${ch.svg()}</div>`:""}<div class="dn-star" aria-hidden="true">⭐</div></div>
+    <h2 class="dn-title">${cheer()}</h2>
+    <p class="dn-sub">${first?"You earned a star!":"You already have this star. Great practice!"}</p>
+    <p style="font-weight:800;font-size:19px;max-width:460px">${esc(o.text||"")}</p>
+    <div class="le-actions">${next}<button class="btn mint" data-a="again">🔁 Play again</button><button class="btn blue" data-a="back">⬅ ${ci||LE.backTarget()==="play"?"Game Zone":"More activities"}</button></div></div>`;
+  sfx("win"); LE.speak(first?"Wonderful! You earned a star!":"Great job!");
+  LE.shower(); LE.burst(innerWidth/2,innerHeight/2); setTimeout(()=>LE.burst(innerWidth*.25,innerHeight*.4),250); setTimeout(()=>LE.burst(innerWidth*.75,innerHeight*.4),450);
+  body.querySelector('[data-a="again"]').onclick=o.again; body.querySelector('[data-a="back"]').onclick=back;
+  const n=body.querySelector('[data-a="next"]'); if(n) n.onclick=()=>LE.go("learn/"+nk);
+  const f=body.querySelector('[data-a="finish"]'); if(f) f.onclick=()=>LE.go("play");
+}
+function mcDraw(r,body,ctl){
+  body.innerHTML=`<div class="le-prompt">${r.prompt||""}${r.ask?`<div class="le-ask">${esc(r.ask)}</div>`:""}
+    <div class="le-actions">${r.say?`<button class="btn small ghost" data-s="1">🔊 Hear it</button>`:""}${r.sound?`<button class="btn small peach" data-p="1">🐾 Play the sound</button>`:""}${r.hearOpts?`<button class="btn small ghost" data-o="1">🔊 Hear the choices</button>`:""}</div></div>
+    <div class="le-fb" aria-live="polite"></div>
+    <div class="le-opts">${r.options.map((op,k)=>`<button class="le-opt${op.txt?" txt":""}" data-k="${k}">${op.html}</button>`).join("")}</div>`;
+  const s=body.querySelector("[data-s]"); if(s) s.onclick=()=>hear(r.say);
+  const o=body.querySelector("[data-o]"); if(o) o.onclick=()=>hear(r.options.map(x=>x.label||"").join(". "));
+  const pl=body.querySelector("[data-p]"); if(pl) pl.onclick=()=>{ if(!LE.audio.animal(r.sound)) hear(r.say||r.sound); };
+  if(r.say) setTimeout(()=>{if(body.isConnected) LE.speak(r.say)},350);
+  const btns=[].slice.call(body.querySelectorAll(".le-opt"));
+  btns.forEach(b=>b.onclick=()=>{
+    const op=r.options[+b.dataset.k];
+    if(op.ok){btns.forEach(x=>x.disabled=true);b.classList.add("ok");celebrate(b);ctl.right(r.praise,r.praiseSay)}
+    else{b.classList.add("bad");b.disabled=true;ctl.wrong()}
+  });
+}
+function rounds(host,api,o){
+  function start(){
+    const rs=o.make(); let i=0,first=0,tried=false;
+    const sh=shell(host,o);
+    function fb(msg,bad){const f=sh.body.querySelector(".le-fb"); if(f){f.textContent=msg||"";f.className="le-fb"+(msg?(bad?" bad pop":" good pop"):"")}}
+    function show(){
+      if(!host.isConnected) return;
+      tried=false; dots(sh.dots,rs.length,i);
+      const ctl={fb:fb,d:false,
+        wrong(msg){tried=true;sfx("bad");fb(TRY_AGAIN+" 💪"+(msg?" "+msg:""),true)},
+        right(msg,sp){ if(ctl.d) return; ctl.d=true; if(!tried) first++; const c=cheer(); fb(c+" 🎉"+(msg?" "+msg:"")); sfx("ok"); LE.speak(sp?c+" "+sp:c);
+          setTimeout(()=>{ if(!host.isConnected) return; i++; if(i<rs.length) show(); else finish(); },o.delay||1200); }
+      };
+      o.draw(rs[i],sh.body,ctl,i);
+    }
+    function finish(){
+      dots(sh.dots,rs.length,rs.length);
+      doneScreen(sh.body,api,{text:"You got "+first+" of "+rs.length+" right on the first try. "+(first===rs.length?"Perfect! 🌟":"Keep practising!"),score:{c:first,t:rs.length},again:start});
+    }
+    show();
+  }
+  start();
+}
+function quiz(host,api,o){ rounds(host,api,Object.assign({},o,{draw:mcDraw})) }
+window.LEKit={shuffle,sample,rnd,range,hear,canSpeak,shell,dots,mc,mcDraw,rounds,quiz,doneScreen,back,esc,sfx,cheer,celebrate,TRY_AGAIN};
+})();
+</script>
+<style>
+/* ===== ALPHABET WORLD ===== */
+.ab-card{border-radius:var(--radius);padding:22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:var(--shadow-s)}
+.ab-letters{font-size:clamp(80px,22vw,150px);font-weight:900;line-height:1;display:flex;gap:18px}
+.ab-pic{font-size:clamp(60px,14vw,96px);animation:bob 2.6s ease-in-out infinite}
+.ab-word{font-size:clamp(22px,4.6vw,32px);font-weight:900}
+.ab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px}
+.ab-k{aspect-ratio:1;border-radius:16px;background:var(--cream);font-weight:900;font-size:22px;border:3px solid transparent}
+.ab-k.seen{background:var(--mint)} .ab-k.cur{border-color:var(--lav-d)}
+.tr-wrap{display:flex;flex-direction:column;gap:12px;align-items:center}
+.tr-top{display:flex;align-items:center;gap:16px;font-size:30px}
+.tr-box{width:100%;max-width:440px;aspect-ratio:1;position:relative;background:#fff;border:4px solid var(--lav);border-radius:var(--radius);overflow:hidden;touch-action:none}
+.tr-box canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.tr-strip{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:560px}
+.tr-strip button{width:44px;height:44px;border-radius:12px;background:var(--cream);font-weight:900}
+.tr-strip button.ok{background:var(--mint)} .tr-strip button.cur{background:var(--lav-d);color:#fff}
+.bw-slots{display:flex;gap:10px;justify-content:center}
+.bw-slot{width:64px;height:76px;border-radius:16px;border:4px dashed var(--lav-d);background:#fff;display:grid;place-items:center;font-size:44px;font-weight:900}
+.bw-slot.on{border-style:solid;border-color:var(--mint-d);background:var(--mint)}
+</style>
+<script>
+/* ===== ALPHABET WORLD — 6 activities ===== */
+(function(){
+"use strict";
+const LE=window.LittleExplorers,K=window.LEKit,esc=LE.esc;
+const LETTERS="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const A=[["A","Apple","🍎"],["B","Ball","⚽"],["C","Cat","🐱"],["D","Dog","🐶"],["E","Elephant","🐘"],["F","Fish","🐟"],["G","Grapes","🍇"],["H","Hat","🎩"],["I","Ice cream","🍦"],["J","Juice","🧃"],["K","Kite","🪁"],["L","Lion","🦁"],["M","Moon","🌙"],["N","Nose","👃"],["O","Orange","🍊"],["P","Pizza","🍕"],["Q","Queen","👑"],["R","Rainbow","🌈"],["S","Sun","☀️"],["T","Tree","🌳"],["U","Umbrella","☂️"],["V","Violin","🎻"],["W","Whale","🐳"],["X","X-ray","🩻"],["Y","Yo-yo","🪀"],["Z","Zebra","🦓"]];
+const COLS=["var(--peach)","var(--blue)","var(--pink)","var(--mint)","var(--lav)","var(--yellow)"];
+const PH={A:"ah",B:"buh",C:"kuh",D:"duh",E:"eh",F:"fff",G:"guh",H:"huh",I:"ih",J:"juh",K:"kuh",L:"lll",M:"mmm",N:"nnn",O:"oh",P:"puh",Q:"kwuh",R:"rrr",S:"sss",T:"tuh",U:"uh",V:"vvv",W:"wuh",X:"ks",Y:"yuh",Z:"zzz"};
+const say=(L,w)=>L+". "+(PH[L]?PH[L]+". ":"")+L+" is for "+w;   /* letter name, then its sound, then the word */
+const speakLetter=i=>LE.speak(say(A[i][0],A[i][1]));
+
+/* 1. Alphabet Cards */
+LE.registerModule("alphabet","abc-cards",{render(host,api){
+  const sh=K.shell(host,{icon:"🔤",title:"Alphabet Cards",instr:"Tap a letter to see its card and hear it. Visit 10 letters to finish!"});
+  sh.dots.style.display="none";
+  let i=0,done=false; const seen=new Set([0]);
+  function draw(){
+    const [L,w,e]=A[i];
+    sh.body.innerHTML=`<div class="ab-card" style="background:${COLS[i%6]}"><div class="ab-letters"><span>${L}</span><span>${L.toLowerCase()}</span></div>
+      <div class="ab-pic">${e}</div><div class="ab-word"><b>${L}</b> for ${esc(w)}</div></div>
+      <div class="le-actions"><button class="btn small ghost" data-a="p">◀ Back</button><button class="btn blue" data-a="h">🔊 Listen</button><button class="btn small ghost" data-a="n">Next ▶</button></div>
+      <p class="le-fb">${seen.size} letters visited${seen.size>=10?" ⭐":" (visit 10)"}</p>
+      <div class="ab-grid">${A.map((x,k)=>`<button class="ab-k ${seen.has(k)?"seen":""} ${k===i?"cur":""}" data-i="${k}">${x[0]}</button>`).join("")}</div>`;
+    sh.body.querySelector('[data-a="p"]').onclick=()=>go(i-1);
+    sh.body.querySelector('[data-a="n"]').onclick=()=>go(i+1);
+    sh.body.querySelector('[data-a="h"]').onclick=()=>K.hear(say(L,w));
+    sh.body.querySelectorAll(".ab-k").forEach(b=>b.onclick=()=>go(+b.dataset.i));
+  }
+  function go(k){ i=(k+26)%26; seen.add(i); draw(); speakLetter(i); if(!done&&seen.size>=10){done=true;api.complete(3)} }
+  draw();
+}});
+
+/* 2. Big & Little Letters */
+LE.registerModule("alphabet","case-match",{render(host,api){
+  K.quiz(host,api,{icon:"🔠",title:"Big & Little Letters",instr:"Find the little letter that matches the big letter.",
+    make:()=>K.sample(LETTERS,10).map(L=>({prompt:`<div class="le-big">${L}</div>`,ask:"Which little letter matches "+L+"?",say:"Find the little letter that matches "+L,
+      praise:"Yes! "+L+" and "+L.toLowerCase()+" 🎉",options:K.mc(L,LETTERS,4,x=>x.toLowerCase())}))});
+}});
+
+/* 3. Trace the Letters (mouse + touch) */
+LE.registerModule("alphabet","trace",{render(host,api){
+  const sh=K.shell(host,{icon:"✍️",title:"Trace the Letters",instr:"Trace the gray letter with your finger or mouse. Then press Check!"});
+  sh.dots.style.display="none";
+  let idx=0,lower=false,passes=0,got=false,drawing=false,last=null,busy=false; const okSet=new Set();
+  sh.body.innerHTML=`<div class="tr-wrap"><div class="tr-top"><button class="btn small ghost" data-a="prev" aria-label="Previous letter">◀</button><b data-n></b><button class="btn small ghost" data-a="next" aria-label="Next letter">▶</button></div>
+    <div class="tr-box"><canvas data-g width="480" height="480"></canvas><canvas data-d width="480" height="480"></canvas></div>
+    <div class="le-fb" data-f></div>
+    <div class="le-actions"><button class="btn small blue" data-a="hear">🔊 Hear</button><button class="btn small ghost" data-a="case">Aa Switch</button><button class="btn small ghost" data-a="clear">🧽 Clear</button><button class="btn mint small" data-a="check">✅ Check</button></div>
+    <div class="tr-strip"></div></div>`;
+  const $=s=>sh.body.querySelector(s);
+  const g=$("[data-g]"),d=$("[data-d]"),gx=g.getContext("2d"),dx=d.getContext("2d");
+  const FONT="900 340px 'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif";
+  const ch=()=>lower?LETTERS[idx].toLowerCase():LETTERS[idx];
+  function baseY(ctx,t){ctx.font=FONT;ctx.textAlign="center";ctx.textBaseline="alphabetic";const m=ctx.measureText(t);return 240+((m.actualBoundingBoxAscent||250)-(m.actualBoundingBoxDescent||0))/2}
+  function guide(){
+    const t=ch(),y=baseY(gx,t); gx.clearRect(0,0,480,480); gx.fillStyle="#efe8fb"; gx.fillText(t,240,y);
+    gx.setLineDash([10,10]); gx.lineWidth=4; gx.strokeStyle="#b39ddb"; gx.strokeText(t,240,y); gx.setLineDash([]);
+    dx.clearRect(0,0,480,480);
+    $("[data-n]").textContent=LETTERS[idx]+" "+LETTERS[idx].toLowerCase();
+    $("[data-f]").textContent=""; strip();
+  }
+  function strip(){ const s=$(".tr-strip"); s.innerHTML=LETTERS.map((L,k)=>`<button class="${okSet.has(k)?"ok":""} ${k===idx?"cur":""}" data-i="${k}">${L}</button>`).join("");
+    s.querySelectorAll("button").forEach(b=>b.onclick=()=>{idx=+b.dataset.i;guide()}); }
+  const pos=e=>{const r=d.getBoundingClientRect();return{x:(e.clientX-r.left)*480/r.width,y:(e.clientY-r.top)*480/r.height}};
+  function pen(){dx.lineCap="round";dx.lineJoin="round";dx.lineWidth=46;dx.strokeStyle="#ff8a65";dx.fillStyle="#ff8a65"}
+  d.addEventListener("pointerdown",e=>{drawing=true;last=pos(e);pen();dx.beginPath();dx.arc(last.x,last.y,23,0,7);dx.fill();try{d.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+  d.addEventListener("pointermove",e=>{if(!drawing)return;const p=pos(e);pen();dx.beginPath();dx.moveTo(last.x,last.y);dx.lineTo(p.x,p.y);dx.stroke();last=p;e.preventDefault()});
+  ["pointerup","pointercancel","pointerleave"].forEach(t=>d.addEventListener(t,()=>{drawing=false}));
+  function check(){
+    if(busy) return;
+    const m=document.createElement("canvas"); m.width=m.height=480; const mx=m.getContext("2d"); const t=ch(); const y=baseY(mx,t); mx.fillStyle="#000"; mx.fillText(t,240,y);
+    const a=mx.getImageData(0,0,480,480).data,b=dx.getImageData(0,0,480,480).data;
+    let tot=0,hit=0,out=0;
+    for(let p=3;p<a.length;p+=16){const inM=a[p]>128,dr=b[p]>40; if(inM){tot++;if(dr)hit++}else if(dr)out++}
+    const f=$("[data-f]");
+    if(hit+out<20){f.textContent="Use your finger to trace the gray letter!";return}
+    if(hit/tot<0.55){f.textContent="Almost! Trace over more of the gray letter.";return}
+    if(out>tot*0.9){f.textContent="Nice try! Stay inside the gray letter.";return}
+    busy=true; passes++; okSet.add(idx); f.textContent="Beautiful tracing! ⭐"; LE.chime(); LE.speak("Beautiful! "+LETTERS[idx]); strip();
+    if(passes>=3&&!got){got=true;api.complete(3)}
+    setTimeout(()=>{busy=false; if(host.isConnected){idx=(idx+1)%26;guide()}},1500);
+  }
+  $('[data-a="prev"]').onclick=()=>{idx=(idx+25)%26;guide()};
+  $('[data-a="next"]').onclick=()=>{idx=(idx+1)%26;guide()};
+  $('[data-a="hear"]').onclick=()=>K.hear(say(LETTERS[idx],A[idx][1]));
+  $('[data-a="case"]').onclick=()=>{lower=!lower;guide()};
+  $('[data-a="clear"]').onclick=()=>{dx.clearRect(0,0,480,480);$("[data-f]").textContent=""};
+  $('[data-a="check"]').onclick=check;
+  guide();
+}});
+
+/* 4. Letter & Picture Match */
+LE.registerModule("alphabet","letter-pic",{render(host,api){
+  K.quiz(host,api,{icon:"🍎",title:"Letter & Picture Match",instr:"Look at the picture. Tap the letter its name starts with.",
+    make:()=>K.sample(A,10).map(([L,w,e])=>({prompt:`<div class="le-big">${e}</div>`,ask:"Which letter does "+w.toLowerCase()+" start with?",say:"Which letter does "+w+" start with?",
+      praise:L+" is for "+w+"! 🎉",praiseSay:L+" is for "+w,options:K.mc(L,LETTERS,4,x=>x)}))});
+}});
+
+/* 5. Listen & Find (letter pronunciation) */
+LE.registerModule("alphabet","letter-sounds",{render(host,api){
+  K.quiz(host,api,{icon:"👂",title:"Listen & Find",instr:"Press the speaker and listen. Then tap the letter you hear!",
+    make:()=>K.sample(LETTERS,10).map(L=>({prompt:`<div class="le-big">🔊</div>`,ask:K.canSpeak()?"Listen. Which letter do you hear?":"Find the letter "+L,say:"Find the letter "+L,
+      praise:"Yes, that is "+L+"! 🎉",options:K.mc(L,LETTERS,4,x=>x)}))});
+}});
+
+/* 6. Build a Word */
+LE.registerModule("alphabet","build-word",{render(host,api){
+  const W=[["cat","🐱"],["dog","🐶"],["sun","☀️"],["hat","🎩"],["bus","🚌"],["pig","🐷"],["cup","☕"],["bed","🛏️"],["fox","🦊"],["bee","🐝"],["car","🚗"],["egg","🥚"],["fish","🐟"],["frog","🐸"]];
+  K.rounds(host,api,{icon:"🧱",title:"Build a Word",instr:"Look at the picture. Tap the letters in order to spell the word.",
+    make:()=>K.sample(W,6).map(([w,e])=>({w:w,e:e})),
+    draw(r,body,ctl){
+      const w=r.w.toUpperCase(); let pos=0;
+      const extras=K.sample(LETTERS.filter(c=>w.indexOf(c)<0),2), tiles=K.shuffle(w.split("").concat(extras));
+      body.innerHTML=`<div class="le-prompt"><div class="le-big">${r.e}</div><div class="le-ask">Spell the word!</div><button class="btn small ghost" data-s="1">🔊 Hear it</button></div>
+        <div class="bw-slots">${w.split("").map(()=>`<span class="bw-slot"></span>`).join("")}</div><div class="le-fb"></div>
+        <div class="le-opts">${tiles.map((t,k)=>`<button class="le-opt" data-k="${k}">${t}</button>`).join("")}</div>`;
+      body.querySelector("[data-s]").onclick=()=>K.hear(r.w);
+      setTimeout(()=>{if(body.isConnected)LE.speak("Spell "+r.w)},300);
+      const slots=body.querySelectorAll(".bw-slot");
+      body.querySelectorAll(".le-opt").forEach(b=>b.onclick=()=>{
+        const t=tiles[+b.dataset.k];
+        if(pos<w.length&&t===w[pos]){slots[pos].textContent=t;slots[pos].classList.add("on");pos++;b.disabled=true;b.classList.add("ok");LE.speak(t.toLowerCase());
+          if(pos===w.length) ctl.right(r.w.toUpperCase()+"! Great spelling! 🎉",r.w);}
+        else{b.classList.add("bad");setTimeout(()=>b.classList.remove("bad"),450);ctl.wrong("Try another letter!")}
+      });
+    }});
+}});
+})();
+</script>
+<style>
+/* ===== NUMBER WORLD ===== */
+.nm-card{border-radius:var(--radius);padding:20px;text-align:center;background:var(--lav);display:flex;flex-direction:column;align-items:center;gap:8px}
+.nm-num{font-size:clamp(80px,22vw,150px);font-weight:900;line-height:1}
+.nm-word{font-size:clamp(24px,5vw,36px);font-weight:900}
+.nm-dots{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:300px}
+.nm-dot{width:36px;height:36px;border-radius:50%;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12);animation:pop .4s both}
+.nm-br{flex-basis:100%;height:0}
+.nm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px}
+.nm-k{aspect-ratio:1;border-radius:16px;background:var(--cream);font-weight:900;font-size:24px;border:3px solid transparent}
+.nm-k.seen{background:var(--mint)} .nm-k.cur{border-color:var(--lav-d)}
+.cnt-grid{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:520px}
+.cnt{position:relative;font-size:clamp(30px,7vw,44px);width:clamp(52px,12vw,68px);height:clamp(52px,12vw,68px);border-radius:18px;background:#fff;border:3px solid var(--lav);transition:.15s}
+.cnt.on{background:var(--yellow);border-color:var(--yellow-d)}
+.cnt-n{position:absolute;right:-4px;top:-8px;background:var(--lav-d);color:#fff;border-radius:99px;font-size:14px;font-weight:900;min-width:24px;height:24px;display:grid;place-items:center}
+.grp{font-size:clamp(20px,4.4vw,28px);line-height:1.2;word-break:break-all;max-width:150px}
+.add-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;font-size:clamp(26px,6vw,40px)}
+.add-row b{font-size:44px}
+.bl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:420px;margin:0 auto}
+.bl{font-size:clamp(40px,10vw,60px);aspect-ratio:1;border-radius:50%;background:none;transition:transform .15s}
+.bl:hover:not(:disabled){transform:scale(1.12)}
+.bl:disabled{opacity:.4;cursor:default}
+.seq{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.seq span{min-width:clamp(52px,13vw,76px);height:clamp(64px,14vw,84px);border-radius:18px;display:grid;place-items:center;font-size:clamp(28px,7vw,42px);font-weight:900;background:var(--blue);padding:0 8px}
+.seq span.q{background:var(--yellow);border:4px dashed var(--yellow-d)}
+.cnt-badge{font-size:26px;font-weight:900}
+</style>
+<script>
+/* ===== NUMBER WORLD — 6 activities ===== */
+(function(){
+"use strict";
+const LE=window.LittleExplorers,K=window.LEKit;
+const W=["one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
+const OBJ=["🍎","🍓","🐟","🌟","🐤","🎈","🚗","🌼","🍪","🐞"];
+const near=(n,lo,hi)=>{const s=new Set([n]);const c=K.shuffle(K.range(Math.max(lo,n-4),Math.min(hi,n+4)).filter(x=>x!==n));c.slice(0,3).forEach(x=>s.add(x));return K.shuffle([...s])};
+const numOpts=(n,lo,hi)=>near(n,lo,hi).map(x=>({html:String(x),ok:x===n}));
+
+/* 1. Number Cards 1-20 */
+LE.registerModule("numbers","number-cards",{render(host,api){
+  const sh=K.shell(host,{icon:"🔢",title:"Number Cards 1–20",instr:"Tap a number. Count the dots and listen to its name. Visit 10 numbers to finish!"});
+  sh.dots.style.display="none";
+  let cur=1,done=false; const seen=new Set([1]);
+  function dotsHTML(n){let h="";for(let k=1;k<=n;k++){h+=`<span class="nm-dot" style="background:${k<=10?"var(--blue-d)":"var(--pink-d)"};animation-delay:${k*30}ms"></span>`;if(k%5===0&&k<n)h+=`<span class="nm-br"></span>`}return h}
+  function draw(){
+    sh.body.innerHTML=`<div class="nm-card"><div class="nm-num">${cur}</div><div class="nm-word">${W[cur-1]}</div><div class="nm-dots">${dotsHTML(cur)}</div></div>
+      <div class="le-actions"><button class="btn small ghost" data-a="p">◀ Back</button><button class="btn blue" data-a="h">🔊 Listen</button><button class="btn small ghost" data-a="n">Next ▶</button></div>
+      <p class="le-fb">${seen.size} numbers visited${seen.size>=10?" ⭐":" (visit 10)"}</p>
+      <div class="nm-grid">${K.range(1,20).map(k=>`<button class="nm-k ${seen.has(k)?"seen":""} ${k===cur?"cur":""}" data-i="${k}">${k}</button>`).join("")}</div>`;
+    sh.body.querySelector('[data-a="p"]').onclick=()=>go(cur===1?20:cur-1);
+    sh.body.querySelector('[data-a="n"]').onclick=()=>go(cur===20?1:cur+1);
+    sh.body.querySelector('[data-a="h"]').onclick=()=>K.hear(cur+". "+W[cur-1]);
+    sh.body.querySelectorAll(".nm-k").forEach(b=>b.onclick=()=>go(+b.dataset.i));
+  }
+  function go(n){cur=n;seen.add(n);draw();LE.speak(n+". "+W[n-1]);if(!done&&seen.size>=10){done=true;api.complete(3)}}
+  draw();
+}});
+
+/* 2. Count the Objects (tap each one to count) */
+LE.registerModule("numbers","count-objects",{render(host,api){
+  K.rounds(host,api,{icon:"🍓",title:"Count the Objects",instr:"Tap each object to count it. Then pick how many there are.",
+    make:()=>[3,5,7,4,9,6,12,8,15,11,14,18].sort(()=>Math.random()-.5).slice(0,8).sort((a,b)=>a-b).map(n=>({n:n,e:OBJ[K.rnd(OBJ.length)]})),
+    draw(r,body,ctl){
+      K.mcDraw({prompt:`<div class="cnt-grid">${Array.from({length:r.n},()=>`<button class="cnt">${r.e}</button>`).join("")}</div>`,ask:"How many are there?",
+        say:"Tap each one to count. How many are there?",praise:r.n+" "+(r.n===1?"is":"are")+" "+W[r.n-1]+"! 🎉",praiseSay:r.n+". "+W[r.n-1],options:numOpts(r.n,1,20)},body,ctl);
+      let c=0;
+      body.querySelectorAll(".cnt").forEach(b=>b.onclick=()=>{ if(b.dataset.c) return; c++; b.dataset.c=c; b.classList.add("on"); b.insertAdjacentHTML("beforeend",`<span class="cnt-n">${c}</span>`); LE.speak(String(c)); });
+    }});
+}});
+
+/* 3. Match the Quantity */
+LE.registerModule("numbers","match-quantity",{render(host,api){
+  K.quiz(host,api,{icon:"⚖️",title:"Match the Quantity",instr:"Look at the number. Tap the group that has that many things.",
+    make:()=>K.sample(K.range(1,10),8).map(n=>{const e=OBJ[K.rnd(OBJ.length)];
+      return {prompt:`<div class="le-big">${n}</div>`,ask:"Which group has "+n+"?",say:"Which group has "+W[n-1]+"?",praise:"Yes! "+n+" "+e+" 🎉",praiseSay:"Yes! "+W[n-1],
+        options:near(n,1,10).map(x=>({html:`<span class="grp">${e.repeat(x)}</span>`,ok:x===n}))}})});
+}});
+
+/* 4. Add It Up (within 10) */
+LE.registerModule("numbers","add-it-up",{render(host,api){
+  K.quiz(host,api,{icon:"➕",title:"Add It Up",instr:"Count both groups together. How many altogether?",
+    make:()=>Array.from({length:8},()=>{const a=1+K.rnd(7),b=1+K.rnd(Math.min(8,10-a)),e=OBJ[K.rnd(OBJ.length)];
+      return {prompt:`<div class="add-row"><span>${e.repeat(a)}</span><b>+</b><span>${e.repeat(b)}</span><b>=</b><b>?</b></div><div class="le-big" style="font-size:56px">${a} + ${b} = ?</div>`,
+        ask:"How many altogether?",say:a+" plus "+b+". How many altogether?",praise:a+" + "+b+" = "+(a+b)+" 🎉",praiseSay:a+" plus "+b+" equals "+(a+b),options:numOpts(a+b,1,10)}})});
+}});
+
+/* 5. Balloon Pop Counting */
+LE.registerModule("numbers","pop-balloons",{render(host,api){
+  const COLORS=["🎈","🎈","🎈","🎈"];
+  K.rounds(host,api,{icon:"🎈",title:"Balloon Pop Counting",instr:"Pop exactly the number of balloons you are asked for. Count out loud!",delay:1400,
+    make:()=>K.sample(K.range(2,10),6).map(n=>({n:n})),
+    draw(r,body,ctl){
+      let popped=0,locked=false;
+      body.innerHTML=`<div class="le-prompt"><div class="le-big">${r.n}</div><div class="le-ask">Pop exactly ${r.n} balloons!</div><button class="btn small ghost" data-s="1">🔊 Hear it</button></div>
+        <div class="le-fb"><span class="cnt-badge">Popped: <b data-c>0</b></span></div><div class="bl-grid">${Array.from({length:12},()=>`<button class="bl">🎈</button>`).join("")}</div>
+        <div class="le-actions"><button class="btn small ghost" data-a="reset">🔄 Start again</button></div>`;
+      body.querySelector("[data-s]").onclick=()=>K.hear("Pop exactly "+W[r.n-1]+" balloons");
+      setTimeout(()=>{if(body.isConnected)LE.speak("Pop exactly "+W[r.n-1]+" balloons")},300);
+      const cnt=body.querySelector("[data-c]"),bs=body.querySelectorAll(".bl");
+      const reset=()=>{if(locked&&popped===r.n)return;popped=0;locked=false;cnt.textContent="0";bs.forEach(b=>{b.textContent="🎈";b.disabled=false})};
+      body.querySelector('[data-a="reset"]').onclick=reset;
+      bs.forEach(b=>b.onclick=()=>{ if(locked) return; popped++; b.textContent="💥"; b.disabled=true; cnt.textContent=popped; LE.speak(String(popped));
+        if(popped===r.n){locked=true;ctl.right("You popped "+r.n+"! 🎉",W[r.n-1]+"! Well done")}
+        else if(popped>r.n){locked=true;ctl.wrong("Oops, too many! Let's try again.");setTimeout(()=>{locked=false;popped=0;cnt.textContent="0";bs.forEach(x=>{x.textContent="🎈";x.disabled=false})},1100)} });
+    }});
+}});
+
+/* 6. Missing Number */
+LE.registerModule("numbers","missing-number",{render(host,api){
+  K.quiz(host,api,{icon:"🚂",title:"Missing Number",instr:"One number fell off the train! Which number is missing?",
+    make:()=>Array.from({length:8},()=>{const s=1+K.rnd(15),h=1+K.rnd(3),n=s+h;
+      const cars=K.range(s,s+4).map((x,k)=>k===h?`<span class="q">?</span>`:`<span>${x}</span>`).join("");
+      return {prompt:`<div class="le-big" style="font-size:44px">🚂</div><div class="seq">${cars}</div>`,ask:"Which number is missing?",say:"Which number is missing from the train?",
+        praise:n+" was missing! 🎉",praiseSay:n,options:numOpts(n,1,20)}})});
+}});
+})();
+</script>
+<style>
+/* ===== COLORS & SHAPES ===== */
+.cs-feature{border-radius:var(--radius);padding:20px;text-align:center;background:var(--cream);display:flex;flex-direction:column;align-items:center;gap:8px}
+.cs-big{width:clamp(120px,32vw,190px);height:clamp(120px,32vw,190px)}
+.cs-name{font-size:clamp(30px,6vw,46px);font-weight:900}
+.cs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:12px}
+.cs-k{border-radius:20px;background:#fff;border:4px solid transparent;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:900;font-size:15px;box-shadow:var(--shadow-s)}
+.cs-k.seen{background:var(--mint)} .cs-k.cur{border-color:var(--lav-d)}
+.sw{width:64px;height:64px;border-radius:50%;box-shadow:inset 0 -6px 0 rgba(0,0,0,.14)}
+.sw.lg{width:clamp(70px,18vw,96px);height:clamp(70px,18vw,96px)}
+.shp{width:clamp(56px,14vw,84px);height:clamp(56px,14vw,84px)}
+.pat{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;font-size:clamp(34px,8vw,52px)}
+.pat span{min-width:clamp(52px,12vw,70px);height:clamp(60px,13vw,78px);display:grid;place-items:center;background:#fff;border-radius:16px;box-shadow:var(--shadow-s)}
+.pat span.q{background:var(--yellow);border:4px dashed var(--yellow-d);font-weight:900}
+</style>
+<script>
+/* ===== COLORS & SHAPES — 5 activities ===== */
+(function(){
+"use strict";
+const LE=window.LittleExplorers,K=window.LEKit;
+const COLORS=[
+ {n:"Red",h:"#ef5350",e:"🍎",o:"an apple"},{n:"Blue",h:"#42a5f5",e:"🐳",o:"a whale"},{n:"Yellow",h:"#ffd54f",e:"🍌",o:"a banana"},{n:"Green",h:"#66bb6a",e:"🐸",o:"a frog"},
+ {n:"Orange",h:"#ffa726",e:"🍊",o:"an orange"},{n:"Purple",h:"#ab7df0",e:"🍇",o:"grapes"},{n:"Pink",h:"#f48fb1",e:"🐷",o:"a pig"},{n:"Brown",h:"#8d6e63",e:"🐻",o:"a bear"}];
+const SHAPES=[
+ {n:"Circle",f:"It is round with no corners.",s:'<circle cx="50" cy="50" r="40"/>'},
+ {n:"Square",f:"It has 4 equal sides and 4 corners.",s:'<rect x="14" y="14" width="72" height="72" rx="6"/>'},
+ {n:"Triangle",f:"It has 3 sides and 3 corners.",s:'<polygon points="50,10 92,86 8,86" stroke-linejoin="round"/>'},
+ {n:"Rectangle",f:"It has 4 sides. Two are long and two are short.",s:'<rect x="8" y="26" width="84" height="48" rx="6"/>'},
+ {n:"Star",f:"It has 5 points.",s:'<polygon points="50,6 61,38 95,38 67,58 78,92 50,71 22,92 33,58 5,38 39,38" stroke-linejoin="round"/>'},
+ {n:"Oval",f:"It is like a squashed circle.",s:'<ellipse cx="50" cy="50" rx="44" ry="28"/>'},
+ {n:"Heart",f:"It looks like a heart. We use it to say love!",s:'<path d="M50 88 C10 56 6 30 26 18 C40 10 50 22 50 30 C50 22 60 10 74 18 C94 30 90 56 50 88Z"/>'}];
+const SHCOL=["#ef5350","#42a5f5","#ffca28","#66bb6a","#ab7df0","#ffa726","#f48fb1"];
+LE.shapeKit={SHAPES:SHAPES,SHCOL:SHCOL};
+const svg=(sh,fill,cls,stroke)=>`<svg class="${cls||"shp"}" viewBox="0 0 100 100" aria-label="${sh.n}" fill="${fill}" stroke="${stroke||"none"}" stroke-width="${stroke?4:0}">${sh.s}</svg>`;
+const swatch=(c,cls)=>`<div class="sw ${cls||""}" style="background:${c.h}" role="img" aria-label="${c.n}"></div>`;
+
+/* 1. Meet the Colors */
+LE.registerModule("colors","meet-colors",{render(host,api){
+  const sh=K.shell(host,{icon:"🎨",title:"Meet the Colors",instr:"Tap each color to hear its name. Meet all 8 colors to finish!"}); sh.dots.style.display="none";
+  let cur=0,done=false; const seen=new Set();
+  function draw(){
+    const c=COLORS[cur];
+    sh.body.innerHTML=`<div class="cs-feature"><div class="sw cs-big" style="background:${c.h}"></div><div class="cs-name" style="color:${c.h}">${c.n}</div><div style="font-weight:800;font-size:20px">${c.n} like ${c.o} <span style="font-size:36px">${c.e}</span></div>
+      <button class="btn blue small" data-a="h">🔊 Listen</button></div><p class="le-fb">${seen.size} of 8 colors met${seen.size>=8?" ⭐":""}</p>
+      <div class="cs-grid">${COLORS.map((x,k)=>`<button class="cs-k ${seen.has(k)?"seen":""} ${k===cur?"cur":""}" data-i="${k}">${swatch(x)}${x.n}</button>`).join("")}</div>`;
+    sh.body.querySelector('[data-a="h"]').onclick=()=>K.hear(c.n+". "+c.n+" like "+c.o);
+    sh.body.querySelectorAll(".cs-k").forEach(b=>b.onclick=()=>{cur=+b.dataset.i;seen.add(cur);draw();LE.speak(COLORS[cur].n+". "+COLORS[cur].n+" like "+COLORS[cur].o);if(!done&&seen.size>=8){done=true;api.complete(3)}});
+  }
+  draw();
+}});
+
+/* 2. Meet the Shapes */
+LE.registerModule("colors","meet-shapes",{render(host,api){
+  const sh=K.shell(host,{icon:"🔷",title:"Meet the Shapes",instr:"Tap each shape to learn its name. Meet all 7 shapes to finish!"}); sh.dots.style.display="none";
+  let cur=0,done=false; const seen=new Set();
+  function draw(){
+    const s=SHAPES[cur];
+    sh.body.innerHTML=`<div class="cs-feature">${svg(s,SHCOL[cur],"cs-big")}<div class="cs-name">${s.n}</div><div style="font-weight:800;font-size:20px">${s.f}</div>
+      <button class="btn blue small" data-a="h">🔊 Listen</button></div><p class="le-fb">${seen.size} of 7 shapes met${seen.size>=7?" ⭐":""}</p>
+      <div class="cs-grid">${SHAPES.map((x,k)=>`<button class="cs-k ${seen.has(k)?"seen":""} ${k===cur?"cur":""}" data-i="${k}">${svg(x,SHCOL[k])}${x.n}</button>`).join("")}</div>`;
+    sh.body.querySelector('[data-a="h"]').onclick=()=>K.hear(s.n+". "+s.f);
+    sh.body.querySelectorAll(".cs-k").forEach(b=>b.onclick=()=>{cur=+b.dataset.i;seen.add(cur);draw();LE.speak(SHAPES[cur].n+". "+SHAPES[cur].f);if(!done&&seen.size>=7){done=true;api.complete(3)}});
+  }
+  draw();
+}});
+
+/* 3. Color Match */
+LE.registerModule("colors","color-match",{render(host,api){
+  K.quiz(host,api,{icon:"🖍️",title:"Color Match",instr:"Listen to the question. Tap the right color!",
+    make:()=>{
+      const a=K.sample(COLORS,4).map(c=>({prompt:`<div class="le-big" style="font-size:60px;color:${c.h}">${c.n}</div>`,ask:"Find the color "+c.n.toLowerCase()+"!",say:"Find the color "+c.n,
+        praise:"Yes, that is "+c.n.toLowerCase()+"! 🎉",praiseSay:c.n+"!",options:K.mc(c,COLORS,4,x=>swatch(x,"lg"))}));
+      const b=K.sample(COLORS,4).map(c=>({prompt:`<div class="le-big">${c.e}</div>`,ask:"What color is "+c.o+"?",say:"What color is "+c.o+"?",
+        praise:c.o.charAt(0).toUpperCase()+c.o.slice(1)+" is "+c.n.toLowerCase()+"! 🎉",praiseSay:c.n,options:K.mc(c,COLORS,4,x=>swatch(x,"lg"))}));
+      return K.shuffle(a.concat(b));
+    }});
+}});
+
+/* 4. Shape Sorting: see the drag-and-drop version in the Games section */
+
+/* 5. Complete the Pattern */
+LE.registerModule("colors","patterns",{render(host,api){
+  const CIRC=["🔴","🔵","🟡","🟢","🟣","🟠"],SHAPE=["⭐","❤️","🔺","🔷","🌙","🍀"];
+  const TEMPL=[[0,1],[0,0,1],[0,1,1],[0,1,2]];
+  K.quiz(host,api,{icon:"🌈",title:"Complete the Pattern",instr:"Look at the pattern. Which one comes next?",
+    make:()=>Array.from({length:8},()=>{
+      const pool=Math.random()<.5?CIRC:SHAPE, t=TEMPL[K.rnd(TEMPL.length)], items=K.sample(pool,3);
+      const seq=[];for(let i=0;i<6;i++)seq.push(items[t[i%t.length]]);
+      const ans=seq[5], shown=seq.slice(0,5);
+      return {prompt:`<div class="pat">${shown.map(x=>`<span>${x}</span>`).join("")}<span class="q">?</span></div>`,ask:"What comes next?",say:"Look at the pattern. What comes next?",
+        praise:"Great pattern thinking! 🎉",options:K.mc(ans,pool,4,x=>x)}})});
+}});
+})();
+</script>
+<style>
+/* ===== ANIMAL KINGDOM ===== */
+.an-tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.an-tabs button{padding:10px 16px;border-radius:99px;background:var(--cream);font-weight:900;font-size:16px}
+.an-tabs button.cur{background:var(--blue-d);color:#fff}
+.an-feature{border-radius:var(--radius);padding:20px;text-align:center;background:var(--blue);display:flex;flex-direction:column;align-items:center;gap:8px}
+.an-emoji{font-size:clamp(80px,22vw,130px);line-height:1;animation:bob 2.6s ease-in-out infinite}
+.an-name{font-size:clamp(28px,6vw,44px);font-weight:900}
+.an-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px}
+.an-k{border-radius:20px;background:#fff;padding:10px 4px;font-size:40px;border:4px solid transparent;display:flex;flex-direction:column;align-items:center;box-shadow:var(--shadow-s)}
+.an-k small{font-size:13px;font-weight:900}
+.an-k.seen{background:var(--mint)} .an-k.cur{border-color:var(--blue-d)}
+.snd{font-size:clamp(40px,10vw,64px);font-weight:900;color:var(--blue-d);letter-spacing:2px}
+</style>
+<script>
+/* ===== ANIMAL KINGDOM — 5 activities ===== */
+(function(){
+"use strict";
+const LE=window.LittleExplorers,K=window.LEKit;
+const G={farm:{t:"Farm",e:"🚜"},wild:{t:"Wild",e:"🦁"},birds:{t:"Birds",e:"🐦"},sea:{t:"Sea",e:"🌊"},insects:{t:"Insects",e:"🐝"}};
+const ANIMALS=[
+ ["Cow","🐄","moo","farm"],["Pig","🐖","oink","farm"],["Sheep","🐑","baa","farm"],["Horse","🐴","neigh","farm"],["Dog","🐕","woof","farm"],["Cat","🐈","meow","farm"],
+ ["Lion","🦁","roar","wild"],["Elephant","🐘","toot toot","wild"],["Monkey","🐒","ooh ooh","wild"],["Tiger","🐯","grr","wild"],["Wolf","🐺","howl","wild"],["Zebra","🦓","neigh","wild"],
+ ["Owl","🦉","hoot","birds"],["Parrot","🦜","squawk","birds"],["Duck","🦆","quack","birds"],["Chicken","🐔","cluck","birds"],["Swan","🦢","honk","birds"],["Dove","🕊️","coo","birds"],
+ ["Whale","🐳","whoosh","sea"],["Dolphin","🐬","click click","sea"],["Fish","🐟","blub blub","sea"],["Crab","🦀","click clack","sea"],["Seal","🦭","arf arf","sea"],["Shark","🦈","gulp","sea"],
+ ["Bee","🐝","buzz","insects"],["Butterfly","🦋","flutter flutter","insects"],["Ant","🐜","tap tap","insects"],["Ladybug","🐞","tick tick","insects"],["Cricket","🦗","chirp","insects"],["Caterpillar","🐛","munch munch","insects"]];
+LE.animalData=ANIMALS;
+const art=n=>/^[AEIOU]/.test(n)?"An":"A";
+const line=a=>art(a[0])+" "+a[0].toLowerCase()+" says "+a[2]+"!";
+
+/* 1. Meet the Animals */
+LE.registerModule("animals","meet-animals",{render(host,api){
+  const sh=K.shell(host,{icon:"🐮",title:"Meet the Animals",instr:"Pick a group. Tap an animal to hear its name and its sound. Meet 10 animals to finish!"}); sh.dots.style.display="none";
+  let grp="farm",cur=ANIMALS[0],done=false; const seen=new Set();
+  function draw(){
+    const list=ANIMALS.filter(a=>a[3]===grp);
+    sh.body.innerHTML=`<div class="an-tabs">${Object.keys(G).map(k=>`<button class="${k===grp?"cur":""}" data-g="${k}">${G[k].e} ${G[k].t}</button>`).join("")}</div>
+      <div class="an-feature"><div class="an-emoji">${cur[1]}</div><div class="an-name">${cur[0]}</div><div style="font-weight:800;font-size:20px">${line(cur)}</div><div class="snd">${cur[2].toUpperCase()}!</div>
+      <button class="btn small ghost" data-a="h">🔊 Listen</button> <button class="btn small peach" data-a="snd">🐾 Hear the sound</button></div><p class="le-fb">${seen.size} animals met${seen.size>=10?" ⭐":" (meet 10)"}</p>
+      <div class="an-grid">${list.map((a,k)=>`<button class="an-k ${seen.has(a[0])?"seen":""} ${a===cur?"cur":""}" data-i="${k}">${a[1]}<small>${a[0]}</small></button>`).join("")}</div>`;
+    sh.body.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>{grp=b.dataset.g;cur=ANIMALS.filter(a=>a[3]===grp)[0];draw()});
+    sh.body.querySelector('[data-a="h"]').onclick=()=>K.hear(cur[0]+". "+line(cur));
+    sh.body.querySelector('[data-a="snd"]').onclick=()=>{ if(!LE.audio.animal(cur[0])) K.hear(line(cur)); };
+    sh.body.querySelectorAll(".an-k").forEach(b=>b.onclick=()=>{cur=list[+b.dataset.i];seen.add(cur[0]);draw();const d=LE.audio.animal(cur[0]);setTimeout(()=>LE.speak(cur[0]+". "+line(cur)),d?Math.min(d*1000,1200):0);if(!done&&seen.size>=10){done=true;api.complete(3)}});
+  }
+  draw();
+}});
+
+/* 2. Who Says That? */
+LE.registerModule("animals","animal-sounds",{render(host,api){
+  K.quiz(host,api,{icon:"🔊",title:"Who Says That?",instr:"Read or listen to the animal sound. Tap the animal that makes it.",
+    make:()=>K.sample(ANIMALS,10).map(a=>({sound:a[0],prompt:`<div class="snd">${a[2].toUpperCase()}!</div>`,ask:"Which animal says \""+a[2]+"\"?",say:"Which animal says "+a[2]+"?",
+      praise:line(a)+" 🎉",praiseSay:line(a),options:K.mc(a,ANIMALS.filter(x=>x[2]!==a[2]),4,x=>`${x[1]}<small>${x[0]}</small>`)}))});
+}});
+
+/* 3. Animal Groups */
+LE.registerModule("animals","animal-groups",{render(host,api){
+  K.quiz(host,api,{icon:"🌍",title:"Animal Groups",instr:"Look at the animal. Is it a farm animal, wild animal, bird, sea animal or insect?",
+    make:()=>K.sample(ANIMALS,8).map(a=>({prompt:`<div class="le-big">${a[1]}</div>`,ask:"Which group is the "+a[0].toLowerCase()+" in?",say:"Which group is the "+a[0]+" in?",
+      praise:"The "+a[0].toLowerCase()+" is in the "+G[a[3]].t.toLowerCase()+" group! 🎉",praiseSay:"The "+a[0]+" is a "+G[a[3]].t+" animal",hearOpts:true,
+      options:Object.keys(G).map(k=>({html:`${G[k].e}<small>${G[k].t}</small>`,ok:k===a[3],label:G[k].t}))}))});
+}});
+
+/* 4. Animal Babies */
+LE.registerModule("animals","animal-babies",{render(host,api){
+  const B=[["Cow","🐄","calf"],["Dog","🐕","puppy"],["Cat","🐈","kitten"],["Horse","🐴","foal"],["Sheep","🐑","lamb"],["Pig","🐖","piglet"],["Chicken","🐔","chick"],["Duck","🦆","duckling"],["Frog","🐸","tadpole"],["Lion","🦁","cub"],["Kangaroo","🦘","joey"],["Goat","🐐","kid"]];
+  const names=B.map(b=>b[2]);
+  K.quiz(host,api,{icon:"🐣",title:"Animal Babies",instr:"Look at the grown-up animal. What is its baby called?",
+    make:()=>K.sample(B,8).map(b=>({prompt:`<div class="le-big">${b[1]}</div>`,ask:"What is a baby "+b[0].toLowerCase()+" called?",say:"What is a baby "+b[0]+" called?",
+      praise:"A baby "+b[0].toLowerCase()+" is a "+b[2]+"! 🎉",praiseSay:"A baby "+b[0]+" is called a "+b[2],hearOpts:true,
+      options:K.mc(b[2],names,4,x=>x).map(o=>{o.txt=true;return o})}))});
+}});
+
+/* 5. Animal Homes */
+LE.registerModule("animals","animal-homes",{render(host,api){
+  const H=[["Cow","🐄","barn"],["Horse","🐴","stable"],["Dog","🐕","kennel"],["Chicken","🐔","coop"],["Bird","🐦","nest"],["Bee","🐝","hive"],["Spider","🕷️","web"],["Bear","🐻","cave"],["Rabbit","🐰","burrow"],["Fish","🐟","water"],["Frog","🐸","pond"],["Pig","🐖","pigpen"]];
+  const homes=Array.from(new Set(H.map(h=>h[2])));
+  K.quiz(host,api,{icon:"🏡",title:"Animal Homes",instr:"Where does this animal live? Tap its home.",
+    make:()=>K.sample(H,8).map(h=>({prompt:`<div class="le-big">${h[1]}</div>`,ask:"Where does the "+h[0].toLowerCase()+" live?",say:"Where does the "+h[0]+" live?",
+      praise:"The "+h[0].toLowerCase()+" lives in a "+h[2]+"! 🎉",praiseSay:"The "+h[0]+" lives in a "+h[2],hearOpts:true,
+      options:K.mc(h[2],homes,4,x=>x).map(o=>{o.txt=true;return o})}))});
+}});
+})();
+</script>
+<style>
+/* ===== STEP 3: DRAG & TAP SORTER, SEQUENCING, MEMORY ===== */
+.sr-scene{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.sr-bin{position:relative;flex:1;min-width:120px;max-width:240px;min-height:130px;border:4px dashed var(--lav-d);border-radius:var(--radius);background:var(--cream);padding:10px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .15s,background .15s,border-color .15s}
+.sr-bin-h{font-size:46px;line-height:1;display:grid;place-items:center}
+.sr-bin-h svg{width:72px;height:72px}
+.sr-bin-l{font-weight:900;font-size:17px;text-align:center}
+.sr-in{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.sr-mini{font-size:34px;line-height:1;animation:pop .4s both}
+.sr-mini svg{width:48px;height:48px}
+.sr-bin.over{background:var(--yellow);border-color:var(--yellow-d);transform:scale(1.05)}
+.sr-bin.filled{border-style:solid;border-color:var(--mint-d);background:#eafaf1}
+.sr-bin.filled.hide-h .sr-bin-h{display:none}
+.sr-scene.armed .sr-bin:not(.filled){animation:wig 1s ease-in-out infinite}
+@keyframes wig{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.sr-scene.free{position:relative;display:block;width:min(100%,380px);aspect-ratio:1;margin:0 auto;background:#f3eefc;border-radius:var(--radius);border:4px solid var(--lav)}
+.sr-scene.table{background:#fff3d6;border-color:var(--yellow-d)}
+.sr-scene.free .sr-bin{position:absolute;min-width:0;max-width:none;min-height:0;padding:0;border-width:3px;border-radius:14px;display:block;background:rgba(255,255,255,.7)}
+.sr-scene.free .sr-bin-h{position:absolute;inset:0;font-size:clamp(26px,9vw,44px);opacity:.4;filter:grayscale(1)}
+.sr-scene.free .sr-bin-h svg{width:100%;height:100%}
+.sr-scene.free .sr-bin-l{position:absolute;left:0;right:0;bottom:-2px;font-size:12px}
+.sr-scene.free .sr-in{position:absolute;inset:0;display:grid;place-items:center}
+.sr-scene.free .sr-mini{width:100%;height:100%;display:grid;place-items:center;font-size:clamp(30px,9vw,54px)}
+.sr-scene.free .sr-mini svg{width:100%;height:100%}
+.sr-scene.free .sr-bin.filled{background:transparent;border-color:transparent}
+.sr-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center;padding:12px;background:var(--yellow);border-radius:var(--radius);min-height:110px}
+.sr-item{background:#fff;border:4px solid var(--lav);border-radius:22px;min-width:92px;min-height:92px;padding:8px;font-size:52px;line-height:1;display:grid;place-items:center;touch-action:none;cursor:grab;box-shadow:var(--shadow-s);transition:transform .15s,border-color .15s,background .15s;user-select:none;-webkit-user-select:none}
+.sr-item svg{width:64px;height:64px;pointer-events:none}
+.sr-item.sel{border-color:var(--peach-d);background:var(--peach);transform:scale(1.08)}
+.sr-item.lift{opacity:.35}
+.sr-item.gone{display:none}
+.sr-item.bad{animation:shake .4s;border-color:var(--pink-d)}
+.sr-ghost{position:fixed;z-index:200;pointer-events:none;transform:translate(-50%,-50%) scale(1.15);font-size:56px;line-height:1;filter:drop-shadow(0 10px 8px rgba(0,0,0,.25))}
+.sr-ghost svg{width:72px;height:72px}
+.sr-hint{text-align:center;font-weight:800;color:var(--ink-soft);font-size:15px}
+/* sequencing */
+.sq-slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.sq-slot{width:clamp(76px,20vw,118px);min-height:112px;border:4px dashed var(--lav-d);border-radius:20px;background:var(--cream);display:flex;flex-direction:column;align-items:center;padding:6px;gap:2px}
+.sq-slot>b{background:var(--lav-d);color:#fff;border-radius:99px;min-width:28px;height:28px;display:grid;place-items:center;font-size:16px}
+.sq-slot span{display:flex;flex-direction:column;align-items:center;font-size:38px;line-height:1.1;text-align:center}
+.sq-slot span small{font-size:12px;font-weight:800;color:var(--ink-soft)}
+.sq-slot.on{border-style:solid;border-color:var(--mint-d);background:#eafaf1;animation:pop .4s}
+.sq-card .sq-e{font-size:48px}
+.sq-card small{font-size:15px;color:var(--ink);text-align:center}
+/* memory cards */
+.mc-grid{display:grid;gap:12px;max-width:520px;margin:0 auto;grid-template-columns:repeat(var(--cols,4),1fr)}
+.mc{aspect-ratio:1;perspective:700px;background:none;border-radius:20px;padding:0}
+.mc-in{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s}
+.mc.flip .mc-in{transform:rotateY(180deg)}
+.mc-f,.mc-b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;display:grid;place-items:center;box-shadow:var(--shadow-s)}
+.mc-f{background:linear-gradient(135deg,var(--lav-d),var(--blue-d));color:#fff;font-size:clamp(28px,8vw,44px);border:4px solid #fff}
+.mc-b{background:#fff;transform:rotateY(180deg);font-size:clamp(36px,10vw,64px);border:4px solid var(--lav)}
+.mc.done .mc-b{background:var(--mint);border-color:var(--mint-d)}
+.mc.done .mc-in{animation:pop .5s}
+.mc:disabled{cursor:default}
+/* find missing, picture matching */
+.fm-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:clamp(46px,12vw,76px);line-height:1.1}
+.fm-row span{background:#fff;border-radius:20px;padding:6px 12px;box-shadow:var(--shadow-s)}
+.fm-row span.hole{background:var(--yellow);border:4px dashed var(--yellow-d)}
+.pm-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:440px;margin:0 auto}
+.pm-col{display:flex;flex-direction:column;gap:12px}
+.pm-it{background:#fff;border:4px solid var(--lav);border-radius:22px;min-height:88px;font-size:clamp(40px,10vw,56px);box-shadow:var(--shadow-s);transition:transform .15s,background .15s}
+.pm-it.sil span{filter:brightness(0);opacity:.7;display:inline-block}
+.pm-it.sel{border-color:var(--peach-d);background:var(--peach);transform:scale(1.06)}
+.pm-it.done{background:var(--mint);border-color:var(--mint-d);animation:pop .4s}
+.pm-it.done span{filter:none;opacity:1}
+.pm-it.bad{animation:shake .4s;border-color:var(--pink-d)}
+</style>
+<script>
+/* =========================================================
+   STEP 3 — GAME ENGINES
+   sorter():   drag-and-drop (mouse + touch) with a tap-to-select alternative
+   sequence(): put the steps in the right order
+   ========================================================= */
+(function(){
+"use strict";
+const LE=window.LittleExplorers,K=window.LEKit,esc=LE.esc;
+const HINT="👆 Drag each one to its place, or tap it and then tap the place.";
+
+function sorter(host,api,o){
+  K.rounds(host,api,Object.assign({},o,{draw(r,body,ctl){
+    const items=r.items; let left=items.length, sel=null, lastDrag=0, drag=null;
+    body.innerHTML=`${r.ask?`<div class="le-ask" style="text-align:center">${esc(r.ask)}</div>`:""}
+      <div class="sr-scene ${r.cls||""}">${r.bins.map(b=>`<div class="sr-bin" data-b="${esc(b.id)}" data-cap="${b.cap||((r.cls||"").indexOf("free")>=0?1:99)}" style="${b.style||""}" role="button" tabindex="0" aria-label="${esc(b.label||b.id)}"><div class="sr-bin-h">${b.html}</div><div class="sr-bin-l">${esc(b.label||"")}</div><div class="sr-in"></div></div>`).join("")}</div>
+      <div class="le-fb" aria-live="polite"></div>
+      <div class="sr-tray">${items.map((it,k)=>`<button class="sr-item" data-k="${k}" aria-label="${esc(it.label||"piece")}">${it.html}</button>`).join("")}</div>
+      <p class="sr-hint">${HINT}</p>`;
+    const scene=body.querySelector(".sr-scene"), tray=body.querySelector(".sr-tray"), hint=body.querySelector(".sr-hint");
+    const bins=[].slice.call(body.querySelectorAll(".sr-bin"));
+    function deselect(){ if(sel) sel.classList.remove("sel"); sel=null; scene.classList.remove("armed"); hint.textContent=HINT; }
+    function select(it){ if(sel===it){deselect();return} if(sel) sel.classList.remove("sel"); sel=it; it.classList.add("sel"); scene.classList.add("armed"); hint.textContent="Now tap the right place! 👇"; K.sfx("flip"); }
+    function place(it,bin){
+      const item=items[+it.dataset.k];
+      it.classList.remove("lift");
+      if(accepts(bin,item)){
+        it.classList.add("gone"); it.disabled=true; if(sel===it) deselect();
+        bin.dataset.cnt=(+bin.dataset.cnt||0)+1; bin.classList.add("filled"); if(+bin.dataset.cap===1) bin.classList.add("hide-h");
+        bin.querySelector(".sr-in").insertAdjacentHTML("beforeend",`<span class="sr-mini">${item.mini||item.html}</span>`);
+        K.sfx("pop"); K.celebrate(bin); left--;
+        if(item.say) LE.speak(item.say);
+        if(left===0) ctl.right(); else ctl.fb(K.cheer()+" 🎉");
+      }else{
+        it.classList.add("bad"); setTimeout(()=>it.classList.remove("bad"),450); deselect(); ctl.wrong();
+      }
+    }
+    /* tap alternative */
+    bins.forEach(b=>{
+      const act=e=>{ if(Date.now()-lastDrag<350) return; if(sel) place(sel,e&&e.clientX?resolve(b,e.clientX,e.clientY,items[+sel.dataset.k]):b); else ctl.fb("Tap a picture first, or drag it here!"); };
+      b.addEventListener("click",act);
+      b.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();act()} });
+    });
+    tray.addEventListener("click",e=>{ const it=e.target.closest(".sr-item"); if(it&&e.detail===0&&!it.classList.contains("gone")) select(it); }); /* keyboard */
+    /* drag and drop with pointer events (works for mouse and touch) */
+    /* outlines can overlap (a door sits on a house), so pick the one that accepts this piece */
+    const accepts=(b,item)=>item.bin===b.dataset.b&&(+b.dataset.cnt||0)<+b.dataset.cap;
+    function binsAt(x,y){ return document.elementsFromPoint(x,y).map(e=>e.closest&&e.closest(".sr-bin")).filter((b,i,a)=>b&&body.contains(b)&&a.indexOf(b)===i); }
+    function resolve(b,x,y,item){ const c=binsAt(x,y); return (item&&c.find(k=>accepts(k,item)))||b; }
+    function binAt(x,y,item){ const c=binsAt(x,y); return (item&&c.find(k=>accepts(k,item)))||c[0]||null; }
+    function clearOver(){ bins.forEach(b=>b.classList.remove("over")); }
+    tray.addEventListener("pointerdown",e=>{
+      const it=e.target.closest(".sr-item"); if(!it||it.classList.contains("gone")||drag) return;
+      drag={it:it,id:e.pointerId,sx:e.clientX,sy:e.clientY,moved:false,ghost:null};
+      try{it.setPointerCapture(e.pointerId)}catch(_){}
+    });
+    tray.addEventListener("pointermove",e=>{
+      if(!drag||e.pointerId!==drag.id) return;
+      if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>8){
+        drag.moved=true; const g=document.createElement("div"); g.className="sr-ghost"; g.innerHTML=drag.it.innerHTML; document.body.appendChild(g); drag.ghost=g; drag.it.classList.add("lift");
+      }
+      if(drag.moved){ drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px"; clearOver(); const b=binAt(e.clientX,e.clientY,items[+drag.it.dataset.k]); if(b) b.classList.add("over"); e.preventDefault(); }
+    });
+    function finish(e,cancel){
+      if(!drag||e.pointerId!==drag.id) return;
+      const d=drag; drag=null; clearOver();
+      if(d.ghost){ d.ghost.remove(); lastDrag=Date.now(); const b=cancel?null:binAt(e.clientX,e.clientY,items[+d.it.dataset.k]); if(b) place(d.it,b); else d.it.classList.remove("lift"); }
+      else if(!cancel){ select(d.it); }
+    }
+    tray.addEventListener("pointerup",e=>finish(e,false));
+    tray.addEventListener("pointercancel",e=>finish(e,true));
+  }}));
+}
+
+function sequence(host,api,o){
+  K.rounds(host,api,Object.assign({},o,{make:()=>K.sample(o.sets,o.count||o.sets.length),draw(r,body,ctl){
+    const steps=r.steps; let next=0, order;
+    do{ order=K.shuffle(steps.map((_,i)=>i)); }while(order.every((v,i)=>v===i));
+    body.innerHTML=`<div class="le-prompt"><div class="le-ask">${esc(r.title)}</div><div class="le-ask" data-q style="font-size:19px;color:var(--lav-d)">Tap what happens FIRST!</div>
+        <button class="btn small ghost" data-s="1">🔊 Hear the steps</button></div>
+      <div class="sq-slots">${steps.map((_,i)=>`<div class="sq-slot"><b>${i+1}</b><span></span></div>`).join("")}</div>
+      <div class="le-fb" aria-live="polite"></div>
+      <div class="le-opts">${order.map(i=>`<button class="le-opt sq-card" data-i="${i}"><span class="sq-e">${steps[i].e}</span><small>${esc(steps[i].t)}</small></button>`).join("")}</div>`;
+    const q=body.querySelector("[data-q]"), slots=body.querySelectorAll(".sq-slot");
+    body.querySelector("[data-s]").onclick=()=>K.hear(order.map(i=>steps[i].t).join(". "));
+    body.querySelectorAll(".sq-card").forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.i; LE.speak(steps[i].t);
+      if(i===next){
+        const s=slots[next]; s.classList.add("on"); s.querySelector("span").innerHTML=`${steps[i].e}<small>${esc(steps[i].t)}</small>`;
+        b.disabled=true; b.style.visibility="hidden"; K.sfx("pop"); K.celebrate(s); next++;
+        if(next===steps.length) ctl.right("That is the right order!");
+        else{ ctl.fb(K.cheer()+" 🎉"); q.textContent=next===steps.length-1?"Which one comes LAST?":"Now, what comes NEXT?"; }
+      }else{
+        b.classList.add("bad"); setTimeout(()=>b.classList.remove("bad"),450);
+        ctl.wrong(next===0?"Think about what happens first.":"Think about what comes next.");
+      }
+    });
+  }}));
+}
+Object.assign(K,{sorter:sorter,sequence:sequence});
+})();
+</script>
+<script>
+/* =========================================================
+   STEP 3 — GAMES
+   Shape sorting (drag & tap) · Guess the animal · Memory cards
+   Picture matching · Shape puzzles · Find the missing object
+   Picture sequencing · Sorting game
+   ========================================================= */
+(function(){
+"use strict";
+const LE=window.LittleExplorers,K=window.LEKit,esc=LE.esc;
+const SK=LE.shapeKit, shape=n=>SK.SHAPES.find(s=>s.n===n), colOf=n=>SK.SHCOL[SK.SHAPES.findIndex(s=>s.n===n)];
+const sv=(n,fill,stroke)=>`<svg viewBox="0 0 100 100" fill="${fill}" stroke="${stroke||"none"}" stroke-width="${stroke?4:0}" aria-hidden="true">${shape(n).s}</svg>`;
+
+/* ---- 4. Shape Sorting: drag shapes into matching holes ---- */
+LE.registerModule("colors","shape-sort",{render(host,api){
+  const BASIC=["Circle","Square","Triangle","Star","Heart"];
+  const rnd=names=>({ask:"Drag each shape to the hole with the same shape.",
+    items:K.shuffle(names).map(n=>({html:sv(n,colOf(n)),bin:n,label:n,say:n})),
+    bins:K.shuffle(names).map(n=>({id:n,html:sv(n,"#f3eefc","#9a82e6"),label:n}))});
+  K.sorter(host,api,{icon:"🔷",title:"Shape Sorting",instr:"Drag each shape into the hole with the same shape. You can also tap a shape and then tap the hole.",
+    make:()=>[rnd(K.sample(BASIC,3)),rnd(K.sample(BASIC,4)),Object.assign(rnd(["Rectangle","Oval","Circle","Square"]),{ask:"Look closely! Match each shape to its hole."})]});
+}});
+
+/* ---- Guess the Animal ---- */
+LE.registerModule("animals","animal-guess",{render(host,api){
+  const AN=LE.animalData, cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  K.quiz(host,api,{icon:"🦁",title:"Guess the Animal",instr:"Look at the animal and pick its name. Sometimes you hear a name and pick the animal!",
+    make:()=>K.sample(AN,8).map((a,i)=>{
+      const three=K.shuffle([a].concat(K.sample(AN.filter(x=>x!==a),2)));
+      if(i%2===0) return {prompt:`<div class="le-big">${a[1]}</div>`,ask:"What animal is this?",say:"What animal is this?",hearOpts:true,
+        praise:"It is a "+a[0].toLowerCase()+"!",praiseSay:"It is a "+a[0],options:three.map(x=>({html:x[0],ok:x===a,label:x[0],txt:true}))};
+      return {prompt:`<div class="le-big">🔎</div>`,ask:"Find the "+a[0].toLowerCase()+"!",say:"Find the "+a[0],
+        praise:cap(a[0].toLowerCase())+" found!",praiseSay:a[0],options:three.map(x=>({html:`${x[1]}<small>${x[0]}</small>`,ok:x===a,label:x[0]}))};
+    })});
+}});
+
+/* ---- 6. Memory matching (card flipping) ---- */
+LE.registerModule("puzzles","memory-cards",{render(host,api){
+  const POOL=["🐶","🐱","🐸","🐰","🦁","🐘","🍎","🍌","🍓","🚗","⭐","🌈","🐟","🦋"];
+  const sh=K.shell(host,{icon:"🃏",title:"Memory Cards",instr:"Flip two cards. If they are the same, they stay open. Find all the pairs!"});
+  function levels(){
+    sh.dots.innerHTML="";
+    sh.body.innerHTML=`<div class="le-ask" style="text-align:center">Choose a level</div><div class="le-opts">${[[3,"Easy","3 pairs"],[4,"Medium","4 pairs"],[6,"Big","6 pairs"]].map(l=>`<button class="le-opt txt" data-n="${l[0]}">${l[1]}<small>${l[2]}</small></button>`).join("")}</div>`;
+    sh.body.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>play(+b.dataset.n));
+  }
+  function play(pairs){
+    const deck=K.sample(POOL,pairs); const cards=K.shuffle(deck.concat(deck));
+    let open=[],lock=false,found=0,tries=0;
+    sh.body.innerHTML=`<div class="le-fb" aria-live="polite">Tries: 0</div><div class="mc-grid" style="--cols:${pairs===3?3:4}">${cards.map((e,i)=>`<button class="mc" data-i="${i}" data-e="${e}" aria-label="Card ${i+1}"><span class="mc-in"><span class="mc-f">❓</span><span class="mc-b">${e}</span></span></button>`).join("")}</div>
+      <div class="le-actions"><button class="btn small ghost" data-a="lv">⬅ Change level</button></div>`;
+    K.dots(sh.dots,pairs,0);
+    const fb=(m,bad)=>{const f=sh.body.querySelector(".le-fb"); if(f){f.textContent=m;f.className="le-fb "+(bad?"bad":"good")+" pop"}};
+    sh.body.querySelector('[data-a="lv"]').onclick=levels;
+    sh.body.querySelectorAll(".mc").forEach(c=>c.onclick=()=>{
+      if(lock||c.classList.contains("flip")||c.classList.contains("done")) return;
+      c.classList.add("flip"); K.sfx("flip"); open.push(c);
+      if(open.length<2) return;
+      tries++; const [a,b]=open; open=[];
+      if(a.dataset.e===b.dataset.e){
+        found++; K.dots(sh.dots,pairs,found);
+        setTimeout(()=>{ a.classList.add("done"); b.classList.add("done"); K.sfx("pop"); K.celebrate(a); },450);
+        fb(K.cheer()+" 🎉 Tries: "+tries);
+        if(found===pairs) setTimeout(()=>{ if(host.isConnected) K.doneScreen(sh.body,api,{text:"You found all "+pairs+" pairs in "+tries+" tries!",score:{c:pairs,t:tries},again:levels}); },1300);
+      }else{
+        lock=true; fb(K.TRY_AGAIN+" 💪 Tries: "+tries,true); K.sfx("bad");
+        setTimeout(()=>{ a.classList.remove("flip"); b.classList.remove("flip"); lock=false; },1000);
+      }
+    });
+  }
+  levels();
+}});
+
+/* ---- Picture Matching: picture to its shadow ---- */
+LE.registerModule("puzzles","picture-match",{render(host,api){
+  const POOL=["🐶","🐱","🐸","🐰","🦁","🐘","🍎","🍌","🍓","🚗","⭐","🐟","🦋","🎈","🚲","🌳"];
+  K.rounds(host,api,{icon:"🔗",title:"Picture Matching",instr:"Tap a picture. Then tap its dark shadow to make a match!",
+    make:()=>[3,3,4].map(n=>K.sample(POOL,n)),
+    draw(items,body,ctl){
+      let sel=null,found=0;
+      body.innerHTML=`<div class="le-fb" aria-live="polite"></div><div class="pm-cols">
+        <div class="pm-col">${K.shuffle(items).map(e=>`<button class="pm-it" data-s="L" data-e="${e}"><span>${e}</span></button>`).join("")}</div>
+        <div class="pm-col">${K.shuffle(items).map(e=>`<button class="pm-it sil" data-s="R" data-e="${e}" aria-label="shadow"><span>${e}</span></button>`).join("")}</div></div>`;
+      body.querySelectorAll(".pm-it").forEach(b=>b.onclick=()=>{
+        if(b.classList.contains("done")) return;
+        if(sel&&sel!==b&&sel.dataset.s!==b.dataset.s){
+          if(sel.dataset.e===b.dataset.e){
+            sel.classList.remove("sel"); sel.classList.add("done"); b.classList.add("done"); b.classList.remove("sil"); sel=null; found++;
+            K.sfx("pop"); K.celebrate(b);
+            if(found===items.length) ctl.right(); else ctl.fb(K.cheer()+" 🎉");
+          }else{
+            const a=sel; sel=null; a.classList.remove("sel"); [a,b].forEach(x=>{x.classList.add("bad");setTimeout(()=>x.classList.remove("bad"),450)}); ctl.wrong();
+          }
+        }else{ if(sel) sel.classList.remove("sel"); sel=b; b.classList.add("sel"); K.sfx("flip"); }
+      });
+    }});
+}});
+
+/* ---- Shape Puzzles: build a picture from shapes ---- */
+LE.registerModule("puzzles","shape-puzzle",{render(host,api){
+  const pz=(n,fill,w,h,stroke)=>`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:${w};height:${h}" fill="${fill}" stroke="${stroke||"none"}" stroke-width="${stroke?4:0}" aria-hidden="true">${shape(n).s}</svg>`;
+  const build=(ask,parts)=>({ask:ask,cls:"free",
+    bins:parts.map(p=>({id:p.k,label:"",style:`left:${p.p[0]}%;top:${p.p[1]}%;width:${p.p[2]}%;height:${p.p[3]}%`,html:pz(p.s,"#ffffff","100%","100%","#9a82e6")})),
+    items:K.shuffle(parts.map(p=>{const sc=Math.max(1.6,48/Math.max(p.p[2],p.p[3]));
+      return {bin:p.k,label:p.s,say:p.s,html:pz(p.s,p.c,Math.round(p.p[2]*sc)+"px",Math.round(p.p[3]*sc)+"px"),mini:pz(p.s,p.c,"100%","100%")}}))});
+  const HOUSE=[{k:"body",s:"Square",c:"#ffca28",p:[18,42,64,50]},{k:"roof",s:"Triangle",c:"#ef5350",p:[10,12,80,32]},{k:"door",s:"Rectangle",c:"#8d6e63",p:[43,62,14,30]},{k:"win",s:"Circle",c:"#42a5f5",p:[24,52,14,14]},{k:"sun",s:"Star",c:"#ffa726",p:[76,2,20,20]}];
+  const ROBOT=[{k:"head",s:"Square",c:"#42a5f5",p:[30,6,40,34]},{k:"body",s:"Rectangle",c:"#ab7df0",p:[24,42,52,38]},{k:"eye",s:"Circle",c:"#ffd54f",p:[38,16,9,9]},{k:"eye",s:"Circle",c:"#ffd54f",p:[54,16,9,9]},{k:"mouth",s:"Oval",c:"#ef5350",p:[40,29,20,6]}];
+  K.sorter(host,api,{icon:"🧩",title:"Shape Puzzles",instr:"Build the picture! Drag each shape to the matching outline. You can also tap a shape, then tap the outline.",
+    make:()=>[build("Build a house! 🏠",HOUSE),build("Build a robot! 🤖",ROBOT)]});
+}});
+
+/* ---- Find the Missing Object ---- */
+LE.registerModule("puzzles","find-missing",{render(host,api){
+  const POOL=["🍎","🍌","🚗","⚽","🐶","🐱","🌟","🎈","🦆","🍓","🧸","🚲","🌳","🍪"];
+  K.rounds(host,api,{icon:"🔍",title:"Find the Missing Object",instr:"Look at the pictures and remember them. Press Ready. One will hide! Which one is gone?",
+    make:()=>[3,3,3,4,4,4].map(n=>({items:K.sample(POOL,n)})).map(r=>Object.assign(r,{miss:K.rnd(r.items.length)})),
+    draw(r,body,ctl){
+      const row=hide=>`<div class="fm-row">${r.items.map((e,i)=>hide&&i===r.miss?`<span class="hole">❓</span>`:`<span>${e}</span>`).join("")}</div>`;
+      body.innerHTML=`<div class="le-prompt"><div class="le-ask">Look carefully! 👀</div>${row(false)}<button class="btn mint" data-a="ready">✅ I'm ready!</button></div>`;
+      body.querySelector('[data-a="ready"]').onclick=()=>{
+        const miss=r.items[r.miss];
+        const opts=K.shuffle([miss].concat(K.sample(POOL.filter(x=>r.items.indexOf(x)<0),2))).map(x=>({html:x,ok:x===miss}));
+        K.mcDraw({prompt:row(true),ask:"Which one is hiding?",say:"Which one is hiding?",options:opts,praise:"You found it!"},body,ctl);
+      };
+    }});
+}});
+
+/* ---- Picture Sequencing ---- */
+LE.registerModule("puzzles","sequencing",{render(host,api){
+  K.sequence(host,api,{icon:"🔢",title:"Picture Sequencing",instr:"Look at the pictures. Tap them in the right order, like a story.",
+    sets:[
+      {title:"A plant grows 🌱",steps:[{e:"🫘",t:"Plant a seed"},{e:"🌱",t:"A sprout grows"},{e:"🌷",t:"A flower blooms"}]},
+      {title:"A butterfly is born 🦋",steps:[{e:"🥚",t:"An egg"},{e:"🐛",t:"A caterpillar"},{e:"🦋",t:"A butterfly"}]},
+      {title:"A chick hatches 🐥",steps:[{e:"🥚",t:"An egg"},{e:"🐣",t:"The egg cracks"},{e:"🐥",t:"A chick!"}]},
+      {title:"Getting ready for bed 🌙",steps:[{e:"🛁",t:"Take a bath"},{e:"🪥",t:"Brush teeth"},{e:"📖",t:"Read a story"},{e:"😴",t:"Sleep"}]}
+    ]});
+}});
+
+/* ---- Sorting Game ---- */
+LE.registerModule("puzzles","sorting-game",{render(host,api){
+  const two=(ask,a,b)=>({ask:ask,bins:[{id:"a",html:a.e,label:a.t},{id:"b",html:b.e,label:b.t}],
+    items:K.shuffle(a.items.map(x=>({html:x[0],bin:"a",label:x[1],say:x[1]})).concat(b.items.map(x=>({html:x[0],bin:"b",label:x[1],say:x[1]}))))});
+  K.sorter(host,api,{icon:"🗂️",title:"Sorting Game",instr:"Drag each picture into the right box. You can also tap a picture, then tap the box.",
+    make:()=>[
+      two("Which are fruits and which are animals?",{e:"🍎",t:"Fruits",items:[["🍌","banana"],["🍇","grapes"],["🍓","strawberry"]]},{e:"🐶",t:"Animals",items:[["🐱","cat"],["🐸","frog"],["🐰","rabbit"]]}),
+      two("Who flies and who swims?",{e:"☁️",t:"Fly",items:[["🦋","butterfly"],["🐦","bird"],["🐝","bee"]]},{e:"🌊",t:"Swim",items:[["🐟","fish"],["🐬","dolphin"],["🐳","whale"]]}),
+      two("Is it hot or cold?",{e:"🔥",t:"Hot",items:[["☕","hot drink"],["☀️","sun"],["🌶️","chili"]]},{e:"❄️",t:"Cold",items:[["🧊","ice"],["⛄","snowman"],["🍦","ice cream"]]})
+    ]});
+}});
+})();
+</script>
+<script>
+/* =========================================================
+   STEP 3 — PRACTICAL LIFE (7 activities)
+   ========================================================= */
+(function(){
+"use strict";
+const LE=window.LittleExplorers,K=window.LEKit;
+
+/* 1. Washing hands (sequencing) */
+LE.registerModule("practical","wash-hands",{render(host,api){
+  K.sequence(host,api,{icon:"🧼",title:"Washing Hands",instr:"Put the hand-washing steps in the right order. Tap what comes first, then next!",
+    sets:[
+      {title:"Wash your hands 🧼",steps:[{e:"💧",t:"Wet your hands"},{e:"🧼",t:"Put on soap"},{e:"👏",t:"Rub and scrub"},{e:"🧻",t:"Dry your hands"}]},
+      {title:"Wash your hands, all the steps 🚰",steps:[{e:"🚰",t:"Turn on the water"},{e:"🧼",t:"Put on soap"},{e:"👏",t:"Scrub for 20 seconds"},{e:"💦",t:"Rinse the soap off"},{e:"🧻",t:"Dry your hands"}]}
+    ]});
+}});
+
+/* 2. Brushing teeth (sequencing) */
+LE.registerModule("practical","brush-teeth",{render(host,api){
+  K.sequence(host,api,{icon:"🪥",title:"Brushing Teeth",instr:"Put the tooth-brushing steps in the right order.",
+    sets:[
+      {title:"Brush your teeth 🪥",steps:[{e:"🧴",t:"A little toothpaste"},{e:"🪥",t:"Brush all your teeth"},{e:"💦",t:"Rinse your mouth"},{e:"😁",t:"Smile!"}]},
+      {title:"Brush your teeth, all the steps 🦷",steps:[{e:"💧",t:"Wet the brush"},{e:"🧴",t:"A little toothpaste"},{e:"🪥",t:"Brush all your teeth"},{e:"💦",t:"Rinse your mouth"},{e:"😁",t:"Smile!"}]}
+    ]});
+}});
+
+/* 3. Arranging toys (drag or tap to put away) */
+LE.registerModule("practical","arrange-toys",{render(host,api){
+  const mk=(ask,bins,items)=>({ask:ask,bins:bins.map(b=>({id:b[0],html:b[1],label:b[2]})),
+    items:K.shuffle(items.map(i=>({html:i[0],bin:i[1],label:i[2],say:i[2]})))});
+  K.sorter(host,api,{icon:"🧸",title:"Arranging Toys",instr:"Tidy up! Drag each one to the right place. You can also tap it, then tap the place.",
+    make:()=>[
+      mk("Toys go in the toy box. Books go on the shelf.",[["toys","🧺","Toy box"],["books","📚","Book shelf"]],
+        [["🧸","toys","teddy bear"],["🚗","toys","car"],["⚽","toys","ball"],["📕","books","red book"],["📘","books","blue book"],["📗","books","green book"]]),
+      mk("Put each toy with its friends.",[["soft","🛏️","Soft toys"],["cars","🛣️","Cars"],["balls","🥅","Balls"]],
+        [["🧸","soft","teddy"],["🐰","soft","bunny"],["🚗","cars","car"],["🚒","cars","fire truck"],["⚽","balls","football"],["🏀","balls","basketball"]])
+    ]});
+}});
+
+/* 4. Sorting clothes */
+LE.registerModule("practical","sort-clothes",{render(host,api){
+  const mk=(ask,bins,items)=>({ask:ask,bins:bins.map(b=>({id:b[0],html:b[1],label:b[2]})),
+    items:K.shuffle(items.map(i=>({html:i[0],bin:i[1],label:i[2],say:i[2]})))});
+  K.sorter(host,api,{icon:"👕",title:"Sorting Clothes",instr:"Drag each piece of clothing to where it belongs. You can also tap it, then tap the place.",
+    make:()=>[
+      mk("Where do we wear it?",[["feet","🦶","Feet"],["body","🧍","Body"],["head","🙂","Head"]],
+        [["🧦","feet","socks"],["👟","feet","shoes"],["👕","body","t-shirt"],["👗","body","dress"],["🧢","head","cap"],["👒","head","sun hat"]]),
+      mk("Is it for a hot day or a cold day?",[["hot","☀️","Hot day"],["cold","❄️","Cold day"]],
+        [["🩳","hot","shorts"],["👙","hot","swimsuit"],["🕶️","hot","sunglasses"],["🧤","cold","gloves"],["🧣","cold","scarf"],["🧥","cold","coat"]])
+    ]});
+}});
+
+/* 5. Make breakfast (sequencing) */
+LE.registerModule("practical","breakfast",{render(host,api){
+  K.sequence(host,api,{icon:"🥣",title:"Make Breakfast",instr:"Help make breakfast! Put the steps in the right order.",
+    sets:[
+      {title:"A bowl of cereal 🥣",steps:[{e:"🥣",t:"Get a bowl"},{e:"🌾",t:"Pour in the cereal"},{e:"🥛",t:"Add milk"},{e:"🥄",t:"Eat with a spoon"}]},
+      {title:"Toast with butter 🍞",steps:[{e:"🍞",t:"Put bread in the toaster"},{e:"⏳",t:"Wait for the toast"},{e:"🧈",t:"Spread the butter"},{e:"😋",t:"Eat and enjoy"}]},
+      {title:"Fruit snack 🍌",steps:[{e:"🧼",t:"Wash your hands"},{e:"🍌",t:"Peel the banana"},{e:"🥣",t:"Put it in a bowl"},{e:"😋",t:"Eat and enjoy"}]}
+    ]});
+}});
+
+/* 6. Set the table (drag or tap onto the place mat) */
+LE.registerModule("practical","set-table",{render(host,api){
+  const P={plate:{e:"🍽️",t:"plate",p:[30,34,40,40]},fork:{e:"🍴",t:"fork",p:[5,36,20,34]},spoon:{e:"🥄",t:"spoon",p:[75,36,20,34]},cup:{e:"🥛",t:"cup",p:[62,3,26,28]},napkin:{e:"🧻",t:"napkin",p:[8,4,22,26]}};
+  const mk=keys=>({ask:"Set the table! Put each thing on the place mat.",cls:"free table",
+    bins:keys.map(k=>({id:k,html:P[k].e,label:P[k].t,style:`left:${P[k].p[0]}%;top:${P[k].p[1]}%;width:${P[k].p[2]}%;height:${P[k].p[3]}%`})),
+    items:K.shuffle(keys.map(k=>({html:P[k].e,bin:k,label:P[k].t,say:P[k].t})))});
+  K.sorter(host,api,{icon:"🍽️",title:"Set the Table",instr:"Drag each thing to its place on the place mat. You can also tap it, then tap its place.",
+    make:()=>[mk(["plate","fork","spoon"]),mk(["plate","fork","spoon","cup","napkin"])]});
+}});
+
+/* 7. Table manners (kind choices) */
+LE.registerModule("practical","table-manners",{render(host,api){
+  const Q=[
+    ["🧼","Before we eat, what do we do?","Wash our hands",["Run around","Jump on the chair"]],
+    ["🙏","When we want something, we say…","Please",["Give me!","Now!"]],
+    ["🎁","When someone gives us food, we say…","Thank you",["Yuck","Nothing"]],
+    ["🪑","How do we sit at the table?","On the chair",["Under the table","Standing on the chair"]],
+    ["😋","When we chew, our mouth is…","Closed",["Open wide","Full of talking"]],
+    ["🧻","If our hands are sticky, we use a…","Napkin",["Curtain","Pet"]],
+    ["🥄","We eat our soup with a…","Spoon",["Shoe","Crayon"]],
+    ["🙋","When we finish, we…","Ask to leave the table",["Throw our food","Run away"]]
+  ];
+  K.quiz(host,api,{icon:"🙏",title:"Table Manners",instr:"Listen to the question. Tap the kind and polite answer.",
+    make:()=>K.sample(Q,6).map(q=>({prompt:`<div class="le-big">${q[0]}</div>`,ask:q[1],say:q[1],hearOpts:true,praise:q[2]+"! That is polite.",praiseSay:q[2],
+      options:K.shuffle([q[2]].concat(q[3])).map(x=>({html:x,ok:x===q[2],label:x,txt:true}))}))});
+}});
+})();
+</script>
+<style>
+/* ===== STEP 4: PROGRESS, BADGES, PARENT DASHBOARD ===== */
+.stats{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:16px}
+.tile{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-s);padding:16px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tile .t-ico{font-size:30px}
+.tile b{font-size:clamp(28px,5vw,36px);line-height:1.1}
+.tile b small{font-size:18px;color:var(--ink-soft)}
+.tile>span:last-child{font-weight:800;font-size:14px;color:var(--ink-soft)}
+.star-hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap;justify-content:center;background:linear-gradient(135deg,var(--yellow),var(--peach))}
+.big-star{font-size:80px;line-height:1;animation:bob 2.6s ease-in-out infinite}
+.sh-text h2{font-size:clamp(34px,6vw,56px)}
+.sh-text p{font-weight:800}
+.sh-text .sh-sub{font-size:15px;color:var(--ink-soft)}
+.prog-list{display:flex;flex-direction:column;gap:12px}
+.prog-row{display:flex;align-items:center;gap:14px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-s);padding:12px 16px;text-align:left;width:100%;transition:transform .15s}
+.prog-row:hover{transform:translateX(4px)}
+.prog-row .char{width:62px;flex:none}
+.pr-main{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.pr-main b{font-size:19px}
+.pr-sub{font-size:14px;font-weight:700;color:var(--ink-soft)}
+.pr-pct{font-weight:900;font-size:22px;min-width:58px;text-align:right}
+.sub-h{font-size:17px;color:var(--ink-soft);margin:6px 2px 10px}
+.badges{grid-template-columns:repeat(auto-fit,minmax(128px,1fr));margin-bottom:12px}
+.badge{padding:16px 10px}
+.badge b{font-size:16px}
+.badge small{font-size:13px;font-weight:700;color:var(--ink-soft);line-height:1.25}
+.badge .bar{width:100%;height:10px}
+.badge .b-prog{font-size:13px;font-weight:900;color:var(--lav-d)}
+.badge.on{background:linear-gradient(135deg,var(--yellow),var(--peach));box-shadow:var(--shadow-s)}
+.badge.on small{color:var(--ink)}
+.badge.on .b-ico{animation:bob 3s ease-in-out infinite}
+.badge.locked{filter:none;opacity:1;background:var(--cream)}
+.badge.locked .b-ico{filter:grayscale(1);opacity:.35}
+.fin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+.fin,.act-card{background:#fff;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-s)}
+.fin h3,.act-card h3{display:flex;align-items:center;gap:8px;font-size:20px}
+.fin h3 small,.act-card h3 small{margin-left:auto;font-size:15px;color:var(--ink-soft)}
+.dot{width:14px;height:14px;border-radius:50%;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--mint);border-radius:99px;padding:8px 14px;font-weight:800;font-size:15px;transition:transform .15s}
+.chip:hover{transform:scale(1.05)}
+.chip small{font-weight:700;color:var(--ink-soft);margin-left:2px}
+.empty{margin-top:8px;font-weight:700;color:var(--ink-soft)}
+.p-note{font-weight:800;color:var(--ink-soft);margin:0 4px}
+.p-small{font-size:14px;font-weight:700;color:var(--ink-soft)}
+.perf{background:var(--cream);border-radius:var(--radius-s);padding:14px;display:flex;flex-direction:column;gap:8px}
+.perf-h{display:flex;align-items:center;gap:12px}
+.perf-h .char{width:48px;flex:none}
+.perf-h small{font-weight:700;color:var(--ink-soft)}
+.pct{font-weight:900;font-size:24px}
+.perf-m{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:14px;font-weight:700;color:var(--ink-soft)}
+.perf-m b{color:var(--ink)}
+.alist{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.alist li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:var(--cream)}
+.alist li.done{background:#eafaf1}
+.alist .ai{font-size:24px}
+.alist .an{flex:1;display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.alist .an small{font-size:13px;font-weight:700;color:var(--ink-soft)}
+.alist .as{font-weight:900;font-size:14px;color:var(--ink-soft);white-space:nowrap}
+.alist li.done .as{color:var(--mint-d)}
+.store-ok{font-weight:800;color:#2a9d6b}
+.store-bad{font-weight:800;color:#d9534f}
+.btn.danger{background:#e5594f;box-shadow:0 6px 0 #b9413a,var(--shadow-s)}
+.btn.danger.small{box-shadow:0 4px 0 #b9413a}
+.modal{position:fixed;inset:0;z-index:200;background:rgba(59,47,74,.55);display:grid;place-items:center;padding:16px;animation:fadeIn .2s}
+.modal-card{background:#fff;border-radius:var(--radius);padding:26px;max-width:440px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;animation:pop .3s both}
+.modal-card h2{font-size:26px}
+.modal-card p{font-weight:700}
+.modal-card small{color:var(--ink-soft)}
+.m-ico{font-size:48px}
+.m-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.badge-pop{position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:130;background:linear-gradient(135deg,var(--yellow),var(--peach));border-radius:var(--radius);box-shadow:0 16px 40px rgba(120,90,160,.35);padding:14px 24px;display:flex;align-items:center;gap:14px;pointer-events:none;max-width:92vw;animation:badgeIn .5s cubic-bezier(.2,1.4,.4,1) both,badgeOut .4s ease 3.2s forwards}
+.badge-pop .bp-ico{font-size:46px}
+.badge-pop small{font-weight:800;color:var(--peach-d);text-transform:uppercase;letter-spacing:.5px;font-size:12px}
+.badge-pop b{font-size:22px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes badgeIn{from{opacity:0;transform:translate(-50%,-30px) scale(.8)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@keyframes badgeOut{to{opacity:0;transform:translate(-50%,-20px)}}
+@media (max-width:700px){ .prog-row .char{width:48px} .pr-pct{font-size:18px;min-width:48px} .badge-pop{top:68px} }
+
+/* ---------- 7. STEP 5: FINAL POLISH (audio buttons, motion, touch sizes) ---------- */
+.btn.peach{background:var(--peach-d);box-shadow:0 6px 0 #d98a5a,var(--shadow-s)}
+.btn.small.peach{box-shadow:0 4px 0 #d98a5a}
+.btn,.le-opt,.cat,.game,.chip,.icon-btn,.nav button,.an-tabs button{position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn{transition:transform .15s,filter .15s}
+.btn:hover{transform:translateY(-3px);filter:brightness(1.05)}
+.btn:active{transform:translateY(3px) scale(.97)}
+.cat,.game{transition:transform .2s,box-shadow .2s}
+.cat:hover,.game:hover{transform:translateY(-6px) rotate(-.6deg)}
+.cat:active,.game:active{transform:scale(.97)}
+.icon-btn{transition:transform .15s,background .2s}
+.icon-btn:hover{transform:scale(1.1) rotate(-6deg)}
+.icon-btn.on{background:var(--mint);animation:bump 2.4s ease-in-out infinite}
+.icon-btn.off{opacity:.55}
+.btn:focus-visible,.icon-btn:focus-visible,.le-opt:focus-visible,.cat:focus-visible,.game:focus-visible,.toggle:focus-visible,.nav button:focus-visible{outline:4px solid var(--lav-d);outline-offset:3px}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.6);transform:scale(0);animation:ripple .6s ease-out forwards;pointer-events:none}
+@keyframes ripple{to{transform:scale(2.6);opacity:0}}
+/* floating shapes behind everything */
+.floaties{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.fl{position:absolute;opacity:.55;animation:flUp linear infinite alternate,flTurn linear infinite}
+.fl.circle,.fl.ring{border-radius:50%} .fl.sq{border-radius:14px} .fl.tri{clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fl.star{clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+@keyframes flUp{from{transform:translateY(-30px)}to{transform:translateY(30px)}}
+@keyframes flTurn{from{rotate:0deg}to{rotate:360deg}}
+/* confetti shower */
+.shower{position:fixed;inset:0;z-index:125;pointer-events:none;overflow:hidden}
+.shower span{position:absolute;top:-40px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(112vh) rotate(540deg)}}
+/* twinkling stars */
+.dn-star,#hudStars{animation:twinkle 1.6s ease-in-out infinite}
+.dn-star{display:inline-block}
+@keyframes twinkle{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.18) rotate(8deg)}}
+.logo-star,.logo .star{animation:twinkle 2.4s ease-in-out infinite}
+/* characters: sway, blink, talk */
+.char svg{overflow:visible}
+.char-btn.talk{animation:talk .9s ease both!important}
+@keyframes talk{0%{transform:scale(1)}20%{transform:scale(1.2) translateY(-14px) rotate(-6deg)}45%{transform:scale(1.12) translateY(0) rotate(5deg)}70%{transform:scale(1.15) rotate(-3deg)}100%{transform:scale(1)}}
+/* screen transitions: items rise in one after another */
+.view>*{animation:rise .5s cubic-bezier(.2,.9,.3,1) both}
+.view>*:nth-child(2){animation-delay:.06s}.view>*:nth-child(3){animation-delay:.12s}.view>*:nth-child(4){animation-delay:.18s}.view>*:nth-child(5){animation-delay:.24s}.view>*:nth-child(n+6){animation-delay:.3s}
+@keyframes rise{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:none}}
+.cat-grid>*,.games>*{animation:pop .45s both}
+/* settings */
+.vol{display:flex;flex-direction:column;gap:6px;font-weight:800}
+.vol input[type=range]{width:100%;height:44px;accent-color:var(--lav-d)}
+.toggle:focus-visible{outline-offset:4px}
+/* gentle wrong answer (warm orange, never red) */
+.le-opt.bad{background:#ffe9d6!important;border-color:#f3b27a!important}
+/* touch + small screens */
+@media (max-width:820px){
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:60;justify-content:space-around;gap:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:3px dashed rgba(154,130,230,.3);box-shadow:0 -6px 20px rgba(120,90,160,.12)}
+  .nav button{display:flex;flex-direction:column;align-items:center;gap:0;font-size:13px;padding:6px 14px;border-radius:18px;min-height:52px}
+  .nav .ico{display:block}
+  .topbar{backdrop-filter:none;background:var(--cream)}
+  .toast{bottom:110px}
+  #app{padding-bottom:96px}
+}
+@media (max-width:480px){
+  .topbar{gap:6px;padding-left:10px;padding-right:10px}
+  .hud{gap:6px}
+  .pill{padding:8px 10px;font-size:15px}
+  .logo span.t{display:none}
+  .btn.big{font-size:21px;padding:16px 24px}
+}
+@media (max-width:360px){ .icon-btn{width:44px;height:44px;font-size:18px} .logo svg,.logo .mark{width:34px;height:34px} }
+@media (hover:none){ .btn:hover,.cat:hover,.game:hover,.icon-btn:hover,.char-btn:hover{transform:none;filter:none} }
+@media (prefers-reduced-motion:reduce){ .floaties,.shower{display:none} }
+/* touch-size fixes: everything tappable is at least 46px */
+.nav button{min-height:46px}
+.btn.small{min-height:46px}
+.icon-btn{flex:none;min-width:44px;min-height:44px}
+.tr-strip button{min-width:46px;min-height:46px}
+.an-tabs button{min-height:46px}
+.pill{white-space:nowrap;flex:none}
+@media (max-width:380px){ .logo span.t.keep{display:none} }
+</style>
+</body>
+</html>
